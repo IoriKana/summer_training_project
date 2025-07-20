@@ -5,7 +5,7 @@ const User = new mongoose.Schema({
 		type: String,
 	},
 
-	account_id: {
+	account: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Account",
 		required: true,
@@ -26,6 +26,24 @@ const User = new mongoose.Schema({
 	gender: {
 		type: String,
 	},
+
+	deleted: {
+		type: Boolean,
+		default: false,
+	},
+});
+
+User.pre(/^find/, function (next) {
+	this.where({ deleted: { $ne: true } });
+	next();
+});
+
+User.pre(/^find/, function (next) {
+	if (this.getOptions().autopopulate === false) {
+		return next();
+	}
+	this.populate("account");
+	next();
 });
 
 const UserModel = mongoose.model("User", User);
