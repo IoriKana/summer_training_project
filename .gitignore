@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+
+# macOS system files
+.DS_Store
+
+# Project diagrams
+Summer Project ERD & SCHEMA.drawio
+Summer Project-schema.drawio.svg
