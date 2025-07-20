@@ -1,0 +1,11 @@
+VALIDATOR
+--------------------------------------------------------
+toJSON::{virtuals: true},
+toObject:{virtuals: true}
+
+EXAMPLE
+___Schema.virtual("fullname").get(function(){
+    return `${this.firstName} ${this.lastName}`
+})
+---------------------------------------------------------
+
