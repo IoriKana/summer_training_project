@@ -54,10 +54,3 @@ exports.login = async (req, res) => {
 		respond(res, STATUS.INTERNAL_SERVER_ERROR, `failed: ${err.message}`);
 	}
 };
-
-// http://localhost:3000/api/
-// /account/create
-// /user/create
-// /user/get
-// /account/get
-// etc...
