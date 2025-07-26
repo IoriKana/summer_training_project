@@ -25,8 +25,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
 		role: "Customer",
 	});
 
-	let newUser = null;
-	newUser = await User.create({
+	const newUser = await User.create({
 		name: newAccount.userName,
 		account: newAccount._id,
 	});
