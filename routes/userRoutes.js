@@ -9,7 +9,7 @@ const {
 
 const Router = express.Router();
 
-Router.get("/get", getAllUsers);
+Router.get("/", getAllUsers);
 Router.post("/create", createUser);
 Router.get("/get/:id", getUserByID);
 Router.patch("/update/:id", updateUser);

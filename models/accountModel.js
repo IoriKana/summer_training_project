@@ -1,52 +1,51 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 const Account = new mongoose.Schema({
-	user_name: {
+	userName: {
 		type: String,
+		required: [true, "UserName is required"],
 	},
 
 	password: {
 		type: String,
-		required: true,
+		required: [true, "Password is required"],
 		minLength: 6,
 		select: false,
+		validator: [
+			validator.isStrongPassword,
+			"Password must be at least 8 characters and include uppercase, lowercase, number, and symbol",
+		],
 	},
 
 	email: {
 		type: String,
-		required: true,
+		required: [true, "Email is required"],
 		unique: true,
+		validator: [validator.isEmail, "invalid Email"],
 	},
 
-	phone_num: {
+	phoneNumber: {
 		type: String,
 	},
-
-	full_name: {
-		first_name: {
-			type: String,
+	role: {
+		type: String,
+		enum: {
+			values: ["Customer", "Staff", "Admin"],
 		},
-		last_name: {
-			type: String,
-		},
+		default: "Customer",
 	},
 });
 
 Account.pre("save", async function (next) {
-	if (!this.isModified("password")) return next();
-	try {
-		const salt = await bcrypt.genSalt(10);
-		this.password = await bcrypt.hash(this.password, salt);
-		next();
-	} catch (error) {
-		next(error);
-	}
+	this.password = await bcrypt.hash(this.password, 12);
+	next();
 });
 
 Account.methods.comparePassword = async function (password) {
 	return await bcrypt.compare(password, this.password);
 };
 
-const AccountModel = mongoose.model("Account", Account);
+const AccountModel = new mongoose.model("Account", Account);
 module.exports = AccountModel;
