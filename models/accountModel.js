@@ -8,6 +8,13 @@ const Account = new mongoose.Schema({
 		required: [true, "UserName is required"],
 	},
 
+	email: {
+		type: String,
+		required: [true, "Email is required"],
+		unique: true,
+		validator: [validator.isEmail, "invalid Email"],
+	},
+
 	password: {
 		type: String,
 		required: [true, "Password is required"],
@@ -17,13 +24,6 @@ const Account = new mongoose.Schema({
 			validator.isStrongPassword,
 			"Password must be at least 8 characters and include uppercase, lowercase, number, and symbol",
 		],
-	},
-
-	email: {
-		type: String,
-		required: [true, "Email is required"],
-		unique: true,
-		validator: [validator.isEmail, "invalid Email"],
 	},
 
 	phoneNumber: {
