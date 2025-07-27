@@ -9,7 +9,9 @@ exports.getAllStaff = catchAsync(async (req, res, next) => {
 });
 
 exports.getStaff = catchAsync(async (req, res, next) => {
-	const staffMember = await Staff.findById(req.params.id).populate("account");
+	const staffMember = await Staff.findOne({ email: req.params.email }).populate(
+		"account"
+	);
 	if (!staffMember) {
 		return respond(res, STATUS.NOT_FOUND, {
 			message: "Staff member not found",

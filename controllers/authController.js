@@ -7,7 +7,6 @@ const { respond } = require("../modules/helperMethods");
 const Staff = require("../models/staffModel");
 const User = require("../models/userModel");
 
-
 const signToken = (payload) => {
 	return jwt.sign(payload, process.env.JWT_SECRET, {
 		expiresIn: process.env.JWT_EXPIRES_IN,
@@ -58,7 +57,7 @@ exports.createStaff = catchAsync(async (req, res, next) => {
 		role: "Staff",
 	});
 
-	let newStaff = await Staff.create({
+	const newStaff = await Staff.create({
 		name: newAccount.userName,
 		account: newAccount._id,
 	});
@@ -85,12 +84,12 @@ exports.login = catchAsync(async (req, res, next) => {
 		);
 	}
 	const token = signToken({ email: account.email, role: account.role });
-	respond(res, STATUS.OK, "success", { account, token });
+	const { password: _, ...safeAccountData } = account.toObject();
+
+	respond(res, STATUS.OK, "Success", { account: safeAccountData, token });
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
-	// Debug: log the Authorization header
-	console.log("Authorization header:", req.headers.authorization);
 	if (
 		!req.headers.authorization ||
 		!req.headers.authorization.startsWith("Bearer")
@@ -103,8 +102,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 		);
 	}
 	const token = req.headers.authorization.split(" ")[1];
-	// Debug: log the token value
-	console.log("Token value:", token);
 	const decode = await jwt.verify(token, process.env.JWT_SECRET);
 	const account = await Account.findOne({ email: decode.email });
 	if (!account) {
