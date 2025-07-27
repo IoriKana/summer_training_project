@@ -1,128 +1,45 @@
 const Account = require("../models/accountModel");
-const appError = require("../utils/appError");
 const { catchAsync } = require("../utils/catchAsync");
-const jwt = require("jsonwebtoken");
-const { STATUS } = require("../modules/status");
 const { respond } = require("../modules/helperMethods");
-const Staff = require("../models/staffModel");
-const User = require("../models/userModel");
+const { STATUS } = require("../modules/status");
+const AppError = require("../utils/appError");
 
-const signToken = (payload) => {
-	return jwt.sign(payload, process.env.JWT_SECRET, {
-		expiresIn: process.env.JWT_EXPIRES_IN,
-	});
-};
+exports.getAllAccounts = catchAsync(async (req, res, next) => {
+	const getData = await Account.find();
+	respond(res, STATUS.OK, "data : ", getData);
+})
 
-// signing up as a regular user, not an admin
-exports.signUp = catchAsync(async (req, res, next) => {
-	const { userName, email, password, phoneNumber } = req.body;
-
-	const newAccount = await Account.create({
-		userName,
-		email,
-		password,
-		phoneNumber,
-		role: "Customer",
-	});
-
-	const newUser = await User.create({
-		name: newAccount.userName,
-		account: newAccount._id,
-	});
-
-	const token = signToken({ email: newAccount.email, role: newAccount.role });
-	respond(res, STATUS.CREATED, "success", {
-		account: newAccount,
-		user: newUser,
-		token,
-	});
-});
-
-exports.createStaff = catchAsync(async (req, res, next) => {
-	// Check if the admin's email matches the one in .env
-	if (req.account.email !== process.env.ADMIN_EMAIL) {
-		return next(
-			new appError(
-				"Only the main admin can create staff accounts",
-				STATUS.FORBIDDEN
-			)
-		);
+exports.createAccount = catchAsync(async (req, res, next) => {
+	const newAccount = await Account.create(req.body);
+	if (!newAccount) {
+		return next(new AppError("user can't be created", STATUS.INTERNAL_SERVER_ERROR));
 	}
-	const { userName, email, password, phoneNumber } = req.body;
-	const newAccount = await Account.create({
-		userName,
-		email,
-		password,
-		phoneNumber,
-		role: "Staff",
-	});
+	respond(res, STATUS.CREATED, "User has been created : ", newAccount);
+})
 
-	let newStaff = await Staff.create({
-		name: newAccount.userName,
-		account: newAccount._id,
-	});
+exports.getById = catchAsync(async (req, res, next) => {
+	const getAccount = await Account.findOne({ email: req.params.email });
 
-	const token = signToken({ email: newAccount.email, role: newAccount.role });
-	respond(res, STATUS.CREATED, "staff account created", {
-		account: newAccount,
-		staff: newStaff,
-		token,
-	});
-});
-
-exports.login = catchAsync(async (req, res, next) => {
-	const { email, password } = req.body;
-	if (!email || !password) {
-		return next(
-			new appError("please provide email and password", STATUS.BAD_REQUEST)
-		);
+	if (!getAccount) {
+		return next(new AppError("user can't be created", STATUS.NOT_FOUND));
 	}
-	const account = await Account.findOne({ email }, "+password");
-	if (!account || !(await account.comparePassword(password))) {
-		return next(
-			new appError("incorrcet email or password", STATUS.UNAUTHORIZED)
-		);
-	}
-	const token = signToken({ email: account.email, role: account.role });
-	respond(res, STATUS.OK, "success", { account, token });
-});
+	respond(res, STATUS.CREATED, "User has been created : ", newAccount);
 
-exports.protect = catchAsync(async (req, res, next) => {
-	// Debug: log the Authorization header
-	console.log("Authorization header:", req.headers.authorization);
-	if (
-		!req.headers.authorization ||
-		!req.headers.authorization.startsWith("Bearer")
-	) {
-		return next(
-			new appError(
-				"You are not logged in! please log in to get access",
-				STATUS.UNAUTHORIZED
-			)
-		);
-	}
-	const token = req.headers.authorization.split(" ")[1];
-	// Debug: log the token value
-	console.log("Token value:", token);
-	const decode = await jwt.verify(token, process.env.JWT_SECRET);
-	const account = await Account.findOne({ email: decode.email });
-	if (!account) {
-		return next(new appError("account no longer exists", STATUS.NOT_FOUND));
-	}
-	req.account = account;
-	next();
-});
+})
 
-exports.restrictTo = (...roles) => {
-	return (req, res, next) => {
-		if (!roles.includes(req.account.role)) {
-			return next(
-				new appError(
-					"You do not have permission to perform this action",
-					STATUS.FORBIDDEN
-				)
-			);
-		}
-		next();
-	};
-};
+exports.UpdateAccount = catchAsync(async (req, res, next) => {
+	const UpdateAccount = await Account.findOneAndUpdate({ email: req.params.email }, req.body, { new: true });
+	if (!UpdateAccount) {
+		return next(new AppError("user can't be updated", STATUS.INTERNAL_SERVER_ERROR));
+	}
+	respond(res, STATUS.OK, "User has been updated ", UpdateAccount);
+})
+
+exports.deleteAccount = catchAsync(async (req, res, next) => {
+	const userExists = await User.findOne({ email: req.params.email });
+	if (!userExists) {
+		return next(new AppError("User not found", 404));
+	}
+	await User.findOneAndDelete({ email: req.params.email });
+	respond(res, STATUS.OK, "User has been updated ", userExists);
+})

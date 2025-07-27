@@ -20,6 +20,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     age,
     gender,
   });
+  
   const token = signToken({ id: newUser._id, role: newUser.role });
   res.status(201).json({
     message: "success",

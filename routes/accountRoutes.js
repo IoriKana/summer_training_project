@@ -1,19 +1,13 @@
 const express = require("express");
-const {
-	signUp,
-	login,
-	protect,
-	restrictTo,
-	createStaff,
-} = require("../controllers/accountController");
+const { getAllAccounts, createAccount, deleteAccount, getById } = require("../controllers/accountController");
+const { restrictTo, protect } = require("../controllers/authController");
 
-const router = express.Router();
 
-// User registration
-router.post("/signup", signUp);
-// User login
-router.post("/login", login);
-// Staff creation (admin only)
-router.post("/staff", protect, restrictTo("Admin"), createStaff);
+const AccountRouter = express.Router();
+AccountRouter.use(protect)
+AccountRouter.use(restrictTo("Admin","Staff"));
+AccountRouter.get("/",getAllAccounts);
+AccountRouter.post("/",createAccount);
+AccountRouter.get("/:email",getById);
+AccountRouter.delete("/:email",deleteAccount);
 
-module.exports = router;
