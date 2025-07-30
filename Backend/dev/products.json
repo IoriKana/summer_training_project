@@ -1,0 +1,72 @@
+[
+	{
+		"name": "Wireless Headphones",
+		"price": 89.99,
+		"description": "High-quality wireless headphones with noise-cancelling features and long battery life.",
+		"stock": 25,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "Mechanical Keyboard",
+		"price": 69.99,
+		"description": "Durable mechanical keyboard with customizable RGB lighting and blue switches.",
+		"stock": 40,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "Ergonomic Chair",
+		"price": 199.99,
+		"description": "Comfortable office chair with lumbar support, breathable mesh, and adjustable height.",
+		"stock": 12,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "4K Monitor 27inch",
+		"price": 329.99,
+		"description": "Stunning 4K UHD display with high refresh rate and excellent color accuracy.",
+		"stock": 8,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "Gaming Mouse Pro",
+		"price": 49.99,
+		"description": "High-precision gaming mouse with adjustable DPI and customizable buttons.",
+		"stock": 50,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "USB-C Hub",
+		"price": 29.99,
+		"description": "Multi-port USB-C hub with HDMI, USB 3.0, SD card reader, and power delivery.",
+		"stock": 30,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "Bluetooth Speaker",
+		"price": 59.99,
+		"description": "Portable Bluetooth speaker with deep bass, water resistance, and 12h battery life.",
+		"stock": 20,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "Smart Desk Lamp",
+		"price": 39.99,
+		"description": "Adjustable LED desk lamp with touch control, brightness settings, and USB charging.",
+		"stock": 18,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "External SSD 1TB",
+		"price": 129.99,
+		"description": "High-speed external SSD with USB 3.1 interface and shock-resistant design.",
+		"stock": 15,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	},
+	{
+		"name": "Laptop Stand Pro",
+		"price": 34.99,
+		"description": "Aluminum laptop stand with adjustable angle and cooling design for airflow.",
+		"stock": 22,
+		"StaffId": "6885d5c63cdd4ede43546152"
+	}
+]

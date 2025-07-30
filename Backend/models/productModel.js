@@ -7,25 +7,23 @@ const prodcutSchema = new mongoose.Schema({
 	},
 	price: {
 		type: Number,
-		required: [true, "Price is required"]
-
+		required: [true, "Price is required"],
 	},
 	description: {
 		type: String,
 		minlength: 20,
-		maxlength: 200
+		maxlength: 200,
 	},
 	stock: {
-		type: number,
+		type: Number,
 		min: 0,
-		required: [true, "stock is required "]
-
+		required: [true, "stock is required "],
 	},
 	StaffId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Staff",
-		required: [true, "Staff id is required"]
-	}
+		required: [true, "Staff id is required"],
+	},
 });
-const ProductModel =  new mongoose.model("Product", productModel);
-module.exports =ProductModel ;
+const ProductModel = new mongoose.model("Product", prodcutSchema);
+module.exports = ProductModel;
