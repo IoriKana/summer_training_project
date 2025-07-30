@@ -3,7 +3,7 @@ const prodcutSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		required: [true, "Product Name is required"],
-		minlength: 6,
+		minlength: 1,
 	},
 	price: {
 		type: Number,
@@ -11,7 +11,7 @@ const prodcutSchema = new mongoose.Schema({
 	},
 	description: {
 		type: String,
-		minlength: 20,
+		minlength: 1,
 		maxlength: 200,
 	},
 	stock: {
@@ -19,7 +19,7 @@ const prodcutSchema = new mongoose.Schema({
 		min: 0,
 		required: [true, "stock is required "],
 	},
-	StaffId: {
+	staff: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Staff",
 		required: [true, "Staff id is required"],

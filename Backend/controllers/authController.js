@@ -30,7 +30,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
 		account: newAccount._id,
 	});
 
-	const token = signToken({ email: newAccount.email, role: newAccount.role });
+	const token = signToken({ id: newAccount._id, role: newAccount.role });
 	respond(res, STATUS.CREATED, "success", {
 		account: newAccount,
 		user: newUser,
@@ -39,7 +39,6 @@ exports.signUp = catchAsync(async (req, res, next) => {
 });
 
 exports.createStaff = catchAsync(async (req, res, next) => {
-	// Check if the admin's email matches the one in .env
 	if (req.account.email !== process.env.ADMIN_EMAIL) {
 		return next(
 			new appError(
@@ -62,7 +61,7 @@ exports.createStaff = catchAsync(async (req, res, next) => {
 		account: newAccount._id,
 	});
 
-	const token = signToken({ email: newAccount.email, role: newAccount.role });
+	const token = signToken({ id: newAccount._id, role: newAccount.role });
 	respond(res, STATUS.CREATED, "staff account created", {
 		account: newAccount,
 		staff: newStaff,
@@ -80,39 +79,81 @@ exports.login = catchAsync(async (req, res, next) => {
 	const account = await Account.findOne({ email }, "+password");
 	if (!account || !(await account.comparePassword(password))) {
 		return next(
-			new appError("incorrcet email or password", STATUS.UNAUTHORIZED)
+			new appError("incorrect email or password", STATUS.UNAUTHORIZED)
 		);
 	}
-	const token = signToken({ email: account.email, role: account.role });
+
+	const token = signToken({ id: account._id, role: account.role });
 	const { password: _, ...safeAccountData } = account.toObject();
 
 	respond(res, STATUS.OK, "Success", { account: safeAccountData, token });
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
+	// 1. Get token and check if it exists
+	let token;
 	if (
-		!req.headers.authorization ||
-		!req.headers.authorization.startsWith("Bearer")
+		req.headers.authorization &&
+		req.headers.authorization.startsWith("Bearer")
 	) {
+		token = req.headers.authorization.split(" ")[1];
+	}
+
+	if (!token) {
 		return next(
 			new appError(
-				"You are not logged in! please log in to get access",
+				"You are not logged in! Please log in to get access.",
 				STATUS.UNAUTHORIZED
 			)
 		);
 	}
-	const token = req.headers.authorization.split(" ")[1];
-	const decode = await jwt.verify(token, process.env.JWT_SECRET);
-	const account = await Account.findOne({ email: decode.email });
-	if (!account) {
-		return next(new appError("account no longer exists", STATUS.NOT_FOUND));
+
+	// 2. Verify token
+	const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+
+	// 3. Find the base account using the ID from the token
+    // FIXED: Changed 'decoded.email' to 'decoded.id' to prevent the CastError.
+	const baseAccount = await Account.findById(decoded.id);
+	if (!baseAccount) {
+		return next(
+			new appError(
+				"The user belonging to this token does no longer exist.",
+				STATUS.UNAUTHORIZED
+			)
+		);
 	}
-	req.account = account;
+
+    // 4. Find the specific profile (Staff or User) linked to this account
+    let currentUserProfile;
+    if (baseAccount.role === 'Staff' || baseAccount.role === 'Admin') {
+        currentUserProfile = await Staff.findOne({ account: baseAccount._id });
+    } else if (baseAccount.role === 'Customer') {
+        currentUserProfile = await User.findOne({ account: baseAccount._id });
+    }
+
+    if (!currentUserProfile) {
+        return next(
+			new appError(
+				"The associated user/staff profile could not be found.",
+				STATUS.UNAUTHORIZED
+			)
+		);
+    }
+	
+    // 5. Grant access to the route
+    // FIXED: Attach BOTH the account and the specific profile to the request.
+    // 'req.account' is needed for permission checks (like role and email).
+    // 'req.user' is the specific profile (Staff/User) and holds the correct ID for creating products.
+    req.account = baseAccount;
+    req.user = currentUserProfile; 
 	next();
 });
 
+
 exports.restrictTo = (...roles) => {
 	return (req, res, next) => {
+        // FIXED: This now correctly checks the role on the 'req.account' object,
+        // which is guaranteed to exist after the 'protect' middleware runs.
 		if (!roles.includes(req.account.role)) {
 			return next(
 				new appError(

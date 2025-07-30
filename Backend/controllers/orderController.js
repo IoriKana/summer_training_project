@@ -1,48 +1,50 @@
 const STATUS = require("../modules/status").STATUS;
 const respond = require("../modules/helperMethods").respond;
-exports.getAllAccounts = catchAsync(async (req, res, next) => {
-	const getData = await Account.find();
+const Order = require("../models/orderModel");
+
+exports.getAllOrders = catchAsync(async (req, res, next) => {
+	const getData = await Order.find();
 	respond(res, STATUS.OK, "data : ", getData);
 });
 
-exports.createAccount = catchAsync(async (req, res, next) => {
-	const newAccount = await Account.create(req.body);
-	if (!newAccount) {
-		return next(
-			new AppError("user can't be created", STATUS.INTERNAL_SERVER_ERROR)
-		);
+exports.createOrder = catchAsync(async (req, res, next) => {
+	const { orderDate, totalCost, user, cartId } = req.body;
+	if (!orderDate || !totalCost || !user || !cartId) {
+		return next(new AppError("Missing required fields", STATUS.BAD_REQUEST));
 	}
-	respond(res, STATUS.CREATED, "User has been created : ", newAccount);
+	const newOrder = await Order.create({
+		orderDate,
+		totalCost,
+		user,
+		cartId
+	});
+
+	respond(res, STATUS.CREATED, "Data: ", newOrder);
 });
 
-exports.getByEmail = catchAsync(async (req, res, next) => {
-	const getAccount = await Account.findOne({ email: req.body.email });
+exports.getOrderById = catchAsync(async (req, res, next) => {
+	const getOrder = await Order.findById(req.params.id);
 
-	if (!getAccount) {
-		return next(new AppError("user can't be created", STATUS.NOT_FOUND));
+	if (!getOrder) {
+		return next(new AppError('No order found with that ID', STATUS.NOT_FOUND));
 	}
-	respond(res, STATUS.CREATED, "User has been created : ", newAccount);
+	respond(res, STATUS.OK, "Data: ", getOrder);
 });
 
-exports.UpdateAccount = catchAsync(async (req, res, next) => {
-	const UpdateAccount = await Account.findOneAndUpdate(
-		{ email: req.params.email },
-		req.body,
-		{ new: true }
-	);
-	if (!UpdateAccount) {
-		return next(
-			new AppError("user can't be updated", STATUS.INTERNAL_SERVER_ERROR)
-		);
+exports.updateOrder = catchAsync(async (req, res, next) => {
+	const order = await Order.findByIdAndUpdate(req.params.id);
+
+	if (!order) {
+		return next(new AppError('No order found with that ID', STATUS.NOT_FOUND));
 	}
-	respond(res, STATUS.OK, "User has been updated ", UpdateAccount);
+	respond(res, STATUS.OK, "Success", order);
 });
 
-exports.deleteAccount = catchAsync(async (req, res, next) => {
-	const userExists = await User.findOne({ email: req.params.email });
-	if (!userExists) {
-		return next(new AppError("User not found", 404));
+exports.deleteOrder = catchAsync(async (req, res, next) => {
+	const deletedOrder = await Order.findOneAndDelete(req.params.id);
+
+	if (!deletedOrder) {
+		return next(new AppError("Order not found", STATUS.NOT_FOUND));
 	}
-	await User.findOneAndDelete({ email: req.params.email });
-	respond(res, STATUS.OK, "User has been updated ", userExists);
+	respond(res, STATUS.OK, "Order has been deleted ", deletedOrder);
 });
