@@ -31,6 +31,16 @@ const User = new mongoose.Schema({
 		type: Boolean,
 		default: false,
 	},
+
+	profilePic:{
+		type: String,
+		default: null
+	},
+
+	cloudinaryId: {
+		type: String,
+		default: null
+	}
 });
 
 User.pre(/^find/, function (next) {

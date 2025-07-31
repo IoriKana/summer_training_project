@@ -4,12 +4,16 @@ const {
 	getUserByID,
 	updateUser,
 	deleteUser,
+	setProfilePic
 } = require("../controllers/userController");
+const upload = require('../utils/multer.js')
 const { protect, restrictTo } = require("../controllers/authController");
 
 const router = express.Router();
 
 router.use(protect);
+
+router.put('/profile/image',upload.single('image') , setProfilePic)
 
 
 router.use(restrictTo("Admin"));

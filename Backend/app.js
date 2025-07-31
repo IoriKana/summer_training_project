@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require('cors')
 const app = express();
 const morgan = require("morgan");
 const dotenv = require("dotenv");
@@ -12,6 +13,7 @@ const cartRoutes = require("./routes/cartRoutes");
 dotenv.config({ path: "./.env" });
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(cors())
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRouter);

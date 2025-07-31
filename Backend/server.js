@@ -1,4 +1,6 @@
 const app = require("./app");
+const connectCloudinary = require('./utils/cloudinary.js');
+const cors = require('cors')
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
@@ -55,3 +57,5 @@ mongoose
 	.catch((err) => {
 		console.error("Failed to connect to MongoDB", err);
 	});
+
+	connectCloudinary()
