@@ -7,7 +7,6 @@ const {
 
 const router = express.Router();
 
-// Only the main admin can create staff accounts
- router.post("/create", protect, restrictTo("Admin"), createStaff);
+router.post("/create", protect, restrictTo("Admin"), createStaff);
 
 module.exports = router;

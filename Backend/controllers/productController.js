@@ -2,10 +2,14 @@ const STATUS = require("../modules/status").STATUS;
 const respond = require("../modules/helperMethods").respond;
 const {catchAsync} = require("../utils/catchAsync");
 const Product = require("../models/productModel");
+const ApiFilter = require("../utils/apiFliter")
 
 exports.getAllProducts = catchAsync(async (req, res, next) => {
-    const Products = await Product.find();
-    respond(res, STATUS.OK, "Products : ", Products);
+    const filter = new ApiFilter(Product.find(), req.query).filter().sort().fields().pagination()
+    
+    const products = await filter.query;
+
+    respond(res, STATUS.OK, "products:", products)
 })
 
 exports.createProduct = catchAsync(async (req, res, next) => {
@@ -31,3 +35,6 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
     const deleteProduct = await Product.findOneAndDelete({ _id: req.params.id })
     respond(res, STATUS.NO_CONTENT, "Product has been deleted ", deleteProduct);
 })
+
+
+

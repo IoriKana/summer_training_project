@@ -29,34 +29,6 @@ exports.getCart = catchAsync(async (req, res, next) => {
         }
     }
 
-    // where does the attribute "productID" come in when i am showing the cart? where is the mistake? is there some naming mistake or linking error? the when i add a product to cart then print cart, it shows "productId" as empty, please fix all issues and all naming conflicts or linking issues
-
-    // ya handesaaaaa fix this error plz it not work
-    // please help i am drowining under the water
-    /*
-    {
-    "message": "Success",
-    "length": null,
-    "data": {
-        "cart": {
-            "_id": "688a7811491adee29731a18f",
-            //
-            "user": "688a76f7eaa50b0b11993755",
-            "__v": 0
-        },
-        "items": [
-            {
-                "_id": "688a7a809c3a777ff37721df",
-                //      688a7a809c3a777ff37721df
-                "productId": null,
-                "cartId": "688a7811491adee29731a18f",
-                "__v": 0,
-                "quantity": 4
-            }
-        ]
-    }
-}
-    */
     respond(res, STATUS.OK, "Success", {
         cart,
         items,
@@ -83,3 +55,4 @@ exports.deleteCart = catchAsync(async (req, res, next) => {
     await ProductCart.deleteMany({ cart: cart._id });
     respond(res, STATUS.NO_CONTENT, "Cart and associated items deleted");
 });
+

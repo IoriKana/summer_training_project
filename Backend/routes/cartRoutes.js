@@ -23,7 +23,6 @@ router.use(protect)
 router.get("/", getCart)
 router.delete("/", clearCart)
 
-router.get("/products", getCartProducts)
 router.post("/product", addProductToCart)
 
 

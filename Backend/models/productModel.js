@@ -24,6 +24,22 @@ const prodcutSchema = new mongoose.Schema({
 		ref: "Staff",
 		required: [true, "Staff id is required"],
 	},
+
+	category:{
+		type: String,
+		enum: {values: [
+			"groceries",
+			"tech", 
+			"sports", 
+			"pet", 
+			"books", 
+			"games",
+			"general"
+		]},
+		default: "general",
+		required: [true, "category id is required"],
+	}
 });
+
 const ProductModel = new mongoose.model("Product", prodcutSchema);
 module.exports = ProductModel;

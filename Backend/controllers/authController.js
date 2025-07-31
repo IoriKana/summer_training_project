@@ -13,7 +13,7 @@ const signToken = (payload) => {
 	});
 };
 
-// signing up as a regular user, not an admin
+
 exports.signUp = catchAsync(async (req, res, next) => {
 	const { userName, email, password, phoneNumber } = req.body;
 
@@ -90,7 +90,6 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
-	// 1. Get token and check if it exists
 	let token;
 	if (
 		req.headers.authorization &&
@@ -108,11 +107,8 @@ exports.protect = catchAsync(async (req, res, next) => {
 		);
 	}
 
-	// 2. Verify token
 	const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
-	// 3. Find the base account using the ID from the token
-    // FIXED: Changed 'decoded.email' to 'decoded.id' to prevent the CastError.
 	const baseAccount = await Account.findById(decoded.id);
 	if (!baseAccount) {
 		return next(
@@ -123,7 +119,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 		);
 	}
 
-    // 4. Find the specific profile (Staff or User) linked to this account
     let currentUserProfile;
     if (baseAccount.role === 'Staff' || baseAccount.role === 'Admin') {
         currentUserProfile = await Staff.findOne({ account: baseAccount._id });
@@ -139,11 +134,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 			)
 		);
     }
-	
-    // 5. Grant access to the route
-    // FIXED: Attach BOTH the account and the specific profile to the request.
-    // 'req.account' is needed for permission checks (like role and email).
-    // 'req.user' is the specific profile (Staff/User) and holds the correct ID for creating products.
+
     req.account = baseAccount;
     req.user = currentUserProfile; 
 	next();
@@ -152,8 +143,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 
 exports.restrictTo = (...roles) => {
 	return (req, res, next) => {
-        // FIXED: This now correctly checks the role on the 'req.account' object,
-        // which is guaranteed to exist after the 'protect' middleware runs.
 		if (!roles.includes(req.account.role)) {
 			return next(
 				new appError(

@@ -7,6 +7,7 @@ const ProductCart = require("../models/product_CartModel.js");
 
 const { catchAsync } = require("../utils/catchAsync.js");
 const AppError = require("../utils/appError.js");
+const mongoose = require('mongoose')
 
 
 const checkProduct = async (productId, quantity) => {
@@ -35,6 +36,9 @@ exports.addProductToCart = catchAsync(async (req, res, next) => {
     if (!productId) {
         return next(new AppError("ProductId is required", STATUS.BAD_REQUEST));
     }
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return next(new AppError("Invalid productId format", STATUS.BAD_REQUEST));
+    }
     if (!quantity || quantity <= 0) {
         return next(new AppError("Quantity must be greater than zero", STATUS.BAD_REQUEST));
     }
@@ -42,7 +46,7 @@ exports.addProductToCart = catchAsync(async (req, res, next) => {
     if (!product) {
         return next(new AppError("Product not found", STATUS.NOT_FOUND));
     }
-    const cart = await checkOrCreateCart(req.user._id || req.user.id);
+    const cart = await checkOrCreateCart(req.user.id);
     let productInCart = await ProductCart.findOne({ cartId: cart._id, productId });
     let newQuantity = quantity;
     if (productInCart) {
@@ -58,40 +62,38 @@ exports.addProductToCart = catchAsync(async (req, res, next) => {
         productInCart = await ProductCart.create({ cartId: cart._id, productId, quantity });
     }
     await productInCart.populate('productId');
-    respond(res, STATUS.OK, "Product updated in cart", productInCart);
+    respond(res, STATUS.OK, "Product added to cart", productInCart);
 });
 
-exports.getCartProducts = catchAsync(async (req, res, next) => {
-    const cart = await checkOrCreateCart(req.user._id || req.user.id);
-    const products = await ProductCart.find({ cartId: cart._id }).populate("productId");
-    if (!products || products.length === 0) {
-        return respond(res, STATUS.NOT_FOUND, "No products found in cart");
-    }
-    respond(res, STATUS.OK, "Products in Cart", products);
-})
 
 exports.updateCartProductQuantity = catchAsync(async (req, res, next) => {
     const productId = req.params.id;
-    const { quantity } = req.body;
-    if (!productId) {
+    const newQuantity = req.body.quantity;
+    if (!productId) {   
         return next(new AppError("ProductId is required", STATUS.BAD_REQUEST));
     }
-    if (!quantity || quantity <= 0) {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return next(new AppError("Invalid productId format", STATUS.BAD_REQUEST));
+    }
+    if (!newQuantity || newQuantity <= 0) {
         return next(new AppError("Quantity must be a positive number.", STATUS.BAD_REQUEST));
     }
     const product = await Product.findById(productId);
     if (!product) {
         return next(new AppError("Product not found", STATUS.NOT_FOUND));
     }
-    if (quantity > product.stock) {
+    if (newQuantity > product.stock) {
         return next(new AppError("Requested quantity exceeds available stock", STATUS.BAD_REQUEST));
     }
-    const cart = await checkOrCreateCart(req.user._id || req.user.id);
+    const cart = await checkOrCreateCart(req.user.id);
     const productInCart = await ProductCart.findOne({ productId, cartId: cart._id });
     if (!productInCart) {
         return next(new AppError("Product not found in cart", STATUS.NOT_FOUND));
     }
-    productInCart.quantity = quantity;
+    productInCart.quantity = newQuantity;
+    console.log(`new quantity: ${newQuantity}`);
+    console.log(`quantity: ${newQuantity}`);
+    
     await productInCart.save();
     await productInCart.populate('productId');
     respond(res, STATUS.OK, "Product quantity updated", productInCart);
@@ -103,7 +105,10 @@ exports.removeProductFromCart = catchAsync(async (req, res, next) => {
     if (!productId) {
         return next(new AppError("ProductId is required", STATUS.BAD_REQUEST));
     }
-    const cart = await checkOrCreateCart(req.user._id || req.user.id);
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return next(new AppError("Invalid productId format", STATUS.BAD_REQUEST));
+    }
+    const cart = await checkOrCreateCart(req.user.id);
     const deletedItem = await ProductCart.findOneAndDelete({
         productId,
         cartId: cart._id
@@ -115,7 +120,7 @@ exports.removeProductFromCart = catchAsync(async (req, res, next) => {
 })
 
 exports.clearCart = catchAsync(async (req, res, next) => {
-    const cart = await checkOrCreateCart(req.user._id || req.user.id);
+    const cart = await checkOrCreateCart(req.user.id);
     await ProductCart.deleteMany({ cartId: cart._id });
     respond(res, STATUS.OK, "Cart cleared");
 })
