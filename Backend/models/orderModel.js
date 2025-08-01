@@ -11,14 +11,15 @@ const orderSchema = new mongoose.Schema({
 
 	paymentStatus: {
 		type: String,
-		enum: ["Pending", "Paid", "Failed"],
+		enum: ["Pending", "Paid", "Canceled"],
 		default: "Pending",
 		required: [true, "Payment status is required"],
 	},
 
 	orderDate:{
 		type: Date,
-		required: [true, "Order date is required"]
+		required: [true, "Order date is required"],
+		default: Date.now()
 	},
 
 	totalCost: {
@@ -33,10 +34,22 @@ const orderSchema = new mongoose.Schema({
 		required: true,
 	},
 	
-	cartId: {
+	cart: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Cart",
 		required: true,
+	},
+
+	address: {
+		country: {
+			type: String,
+		},
+		city: {
+			type: String,
+		},
+		building: {
+			type: String,
+		},
 	},
 })
 

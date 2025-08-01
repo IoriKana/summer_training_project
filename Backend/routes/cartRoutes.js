@@ -5,8 +5,7 @@ const {restrictTo} = require("../controllers/authController");
 const {
     getAllCarts,
     getCart,
-    createCart,
-    deleteCart
+    CartConfirm
 } = require("../controllers/cartController");
 
 const {
@@ -32,4 +31,6 @@ router.delete("/products/:id", removeProductFromCart)
 
 router.get("/getall",restrictTo("Admin","Staff") ,getAllCarts)
 
+router.post("/confirm",CartConfirm);
+//خلينا نجرب 
 module.exports = router;

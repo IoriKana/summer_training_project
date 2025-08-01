@@ -6,16 +6,36 @@ const { STATUS } = require("../modules/status");
 const { respond } = require("../modules/helperMethods");
 const Staff = require("../models/staffModel");
 const User = require("../models/userModel");
-
+const countries = require("../utils/countries")
+// طب ليه منعملش لدول محدد انا مش بنشحن لدول العالم :joy:
+// what about africa only
+// بس ممكن ناخد دول معينة  مش افريقيا دول عربية منها مصر ، 
+// and america, they have a lot of money i want money
+// :joyTrump:
+// ماشي يا ترامب خلصانة
+//بص رجعها وخليها ي
 const signToken = (payload) => {
 	return jwt.sign(payload, process.env.JWT_SECRET, {
 		expiresIn: process.env.JWT_EXPIRES_IN,
 	});
 };
 
-
+// 😍
 exports.signUp = catchAsync(async (req, res, next) => {
-	const { userName, email, password, phoneNumber } = req.body;
+	const { userName, email, password, phoneNumber,country,City,Building } = req.body;
+	
+	if(!country in countries){
+		return next(new AppError("Country or city not found  ",STATUS.BAD_REQUEST));
+	}
+// no this will work i think
+// when we start order we can do
+// const shippingPrice = countries[req.user.country]
+// omar wael when he see the code:
+// :notJoy:
+// i will watch you write the code
+//first we need the info is not default
+// we can make it in the same line 
+// gamedddddddddddddddddd :joy:
 
 	const newAccount = await Account.create({
 		userName,
@@ -28,6 +48,11 @@ exports.signUp = catchAsync(async (req, res, next) => {
 	const newUser = await User.create({
 		name: newAccount.userName,
 		account: newAccount._id,
+		address : {
+			country : country,
+			city:City,
+			building : Building
+		}
 	});
 
 	const token = signToken({ id: newAccount._id, role: newAccount.role });

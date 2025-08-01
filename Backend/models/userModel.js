@@ -42,6 +42,7 @@ const User = new mongoose.Schema({
 		default: null
 	}
 });
+// 😂😳 
 
 User.pre(/^find/, function (next) {
 	this.where({ deleted: { $ne: true } });
