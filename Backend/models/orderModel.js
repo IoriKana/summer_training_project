@@ -34,11 +34,16 @@ const orderSchema = new mongoose.Schema({
 		required: true,
 	},
 	
-	cart: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "Cart",
-		required: true,
-	},
+	items: [
+    {
+    	productId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Product"
+    	},
+    	quantity: Number,
+		price: Number,
+    }
+  ],
 
 	address: {
 		country: {

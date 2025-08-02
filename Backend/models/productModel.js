@@ -1,4 +1,12 @@
 const mongoose = require("mongoose");
+// maged
+// shit
+// this might be many to many
+// each order have many item
+// each item in many order
+// :joy:
+// can we do that in mongodb
+// 
 const prodcutSchema = new mongoose.Schema({
 	name: {
 		type: String,

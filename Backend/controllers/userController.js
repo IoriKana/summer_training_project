@@ -83,6 +83,11 @@ exports.setProfilePic =  catchAsync(async (req, res, next) => {
 
 });
 
+exports.getProfile =  catchAsync(async (req, res, next) => {
+	const user = User.findById(req.body.user)
+	respond(res, STATUS.OK, "profile:", user)
+})
+
 // exports.getProfile =  catchAsync(async (req, res, next) => {
 
 // });

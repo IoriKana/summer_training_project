@@ -2,7 +2,8 @@ const STATUS = require("../modules/status").STATUS;
 const respond = require("../modules/helperMethods").respond;
 const {catchAsync} = require("../utils/catchAsync");
 const Product = require("../models/productModel");
-const ApiFilter = require("../utils/apiFliter")
+const ApiFilter = require("../utils/apiFliter");
+const review = require("../models/user_productModel")
 
 exports.getAllProducts = catchAsync(async (req, res, next) => {
     const filter = new ApiFilter(Product.find(), req.query).filter().sort().fields().pagination()
@@ -19,10 +20,15 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 
 exports.GetProductById = catchAsync(async (req, res, next) => {
     const getProduct = await Product.findById(req.params.id);
+    const getReview = await review.find({productId:req.params.id});
     if (!getProduct) {
         return next(new AppError("Product not found ", STATUS.NOT_FOUND));
     }
-    respond(res, STATUS.OK, "Product: ", getProduct);
+  
+    respond(res, STATUS.OK, "Product Found ", {
+        ProductInfo : getProduct,
+        Reviews : getReview
+    });
 })
 
 exports.updateProduct = catchAsync(async (req, res, next) => {

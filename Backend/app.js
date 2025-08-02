@@ -10,10 +10,12 @@ const staffRoutes = require("./routes/staffRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const review = require("./routes/user_ProdcutRoutes");
 dotenv.config({ path: "./.env" });
 app.use(express.json());
 app.use(morgan("dev"));
-app.use(cors())
+
+
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRouter);
@@ -21,4 +23,5 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/accounts", accountRoutes);
 app.use("/api/products",productRoutes)
 app.use("/api/cart", cartRoutes)
+app.use("/api/review",review);
 module.exports = app;
