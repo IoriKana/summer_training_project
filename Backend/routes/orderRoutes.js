@@ -1,5 +1,4 @@
 const express = require("express");
-const router = express.Router();
 const {protect} = require("../controllers/authController");
 const {restrictTo} = require("../controllers/authController");
 const {
@@ -12,18 +11,22 @@ const {
 } = require("../controllers/orderController");
 
 
-router.use(protect)
+const router = express.Router();
 
-router.get("/", getUserOrders)
-router.get("//:id", getUserOrderById)
+router.use(protect);
 
+// User order routes
+router.get("/", getUserOrders);
+router.get("/:id", getUserOrderById);
 
-router.patch("/orders/:id", updateOrder)
-router.delete("/orders/:id", deleteOrder)
+// Update/delete orders
+router.patch("/:id", updateOrder);
+router.delete("/:id", deleteOrder);
 
-router.use(restrictTo("Admin","Staff"))
-router.get("/all", getAllOrders)
-router.get("/all/:id", getOrderById)
+// Admin/staff routes
+router.use(restrictTo("Admin", "Staff"));
+router.get("/all", getAllOrders);
+router.get("/all/:id", getOrderById);
 
 module.exports = router;
 //انا عاوز الرد الي بيوصل بعد ما بينضيف الايتم ونعمل الاوردر 

@@ -1,57 +1,19 @@
 @import "tailwindcss";
 
-/* ───────────────────────────────
-   🎨 PALETTE + DESIGN TOKENS
-   These variables power the Tailwind theme —
-   creating utilities like bg-primary, text-warn, etc.
-───────────────────────────────── */
 @theme {
-  /* Pastel & Professional Tone */
-  --color-primary:        #d8b4fe;
-  --color-primary-light:  #e9d5ff;
-  --color-primary-dark:   #c084fc;
+	--color-pastel-pink: #f4a09c;
+	--color-pastel-blue: #9cc2f4;
+	--color-pastel-green: #9cf4a7;
+	--color-pastel-yellow: #faf9d1;
+	--color-dark-gray: #374151;
+	--color-light-gray: #f9fafb;
+	--color-pastel-pink: #f8c9d3; /* A softer pink */
+	--color-pastel-blue: #a3d5ff; /* A sky blue */
+	--color-pastel-purple: #d1c4e9; /* A lavender purple */
+	--color-pastel-green: #c8e6c9; /* We'll keep this for accents */
+	--color-dark-gray: #333333; /* A slightly softer dark gray for text */
+	--color-light-gray: #f9fafb;
 
-  --color-accent:         #f9a8d4;
-  --color-accent-light:   #fbcfe8;
-  --color-accent-dark:    #f472b6;
-
-  --color-success:        #bbf7d0;
-  --color-success-dark:   #4ade80;
-
-  --color-info:           #bae6fd;
-  --color-info-dark:      #38bdf8;
-
-  --color-warning:        #fde68a;
-  --color-warning-dark:   #facc15;
-
-  --color-danger:         #fecaca;
-  --color-danger-dark:    #f87171;
-
-  /* Base & text colors */
-  --color-bg:             #fdf4ff;
-  --color-text:           #2e2e2e;
-
-  /* Spacing scale */
-  --spacing-2:            0.5rem;
-  --spacing-3:            0.75rem;
-  --spacing-4:            1rem;
-
-  /* Radius */
-  --radius-sm:            0.25rem;
-  --radius-lg:            0.75rem;
-}
-
-/* ───────────────────────────────
-   ⚙️ Optional base resets
-───────────────────────────────── */
-@layer base{
-  h1{
-    @apply text-base font-medium tracking-tight text-slate-900
-  }
-}
-
-@layer components{
-  .card{
-    @apply m-10 rounded-lg bg-primary
-  }
+	--font-family-heading: "Inter", "sans-serif";
+	--font-family-body: "Inter", "sans-serif";
 }

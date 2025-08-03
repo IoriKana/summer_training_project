@@ -1,5 +1,5 @@
 const express = require("express");
-const cors = require('cors')
+const cors = require("cors");
 const app = express();
 const morgan = require("morgan");
 const dotenv = require("dotenv");
@@ -12,16 +12,15 @@ const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const review = require("./routes/user_ProdcutRoutes");
 dotenv.config({ path: "./.env" });
+app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-
-
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRoutes);
 app.use("/api/accounts", accountRoutes);
-app.use("/api/products",productRoutes)
-app.use("/api/cart", cartRoutes)
-app.use("/api/review",review);
+app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/review", review);
 module.exports = app;

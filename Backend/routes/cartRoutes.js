@@ -1,5 +1,4 @@
 const express = require("express");
-const router = express.Router();
 const {protect} = require("../controllers/authController");
 const {restrictTo} = require("../controllers/authController");
 const {
@@ -17,20 +16,22 @@ const {
 } = require("../controllers/product_cartController");
 
 
-router.use(protect)
+const router = express.Router();
 
-router.get("/", getCart)
-router.delete("/", clearCart)
+router.use(protect);
 
-router.post("/product", addProductToCart)
+router.get("/", getCart);
+router.delete("/", clearCart);
 
+// Product-related cart operations
+router.post("/items", addProductToCart);
+router.patch("/items/:id", updateCartProductQuantity);
+router.delete("/items/:id", removeProductFromCart);
 
-router.patch("/products/:id", updateCartProductQuantity)
-router.delete("/products/:id", removeProductFromCart)
+// Admin/staff access to all carts
+router.get("/all", restrictTo("Admin", "Staff"), getAllCarts);
 
-
-router.get("/getall",restrictTo("Admin","Staff") ,getAllCarts)
-
-router.post("/confirm",CartConfirm);
+// Confirm checkout
+router.post("/confirm", CartConfirm);
 
 module.exports = router;

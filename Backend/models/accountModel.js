@@ -34,6 +34,14 @@ const Account = new mongoose.Schema(
 			},
 			default: "Customer",
 		},
+		resetPasswordToken: {
+		type : String,
+		default:undefined
+	},
+	resetPasswordTokenExp :{
+		type : Date,
+		default:undefined
+	},
 	},
 	{
 		toJSON: { virtuals: true },

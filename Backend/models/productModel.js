@@ -1,12 +1,5 @@
 const mongoose = require("mongoose");
-// maged
-// shit
-// this might be many to many
-// each order have many item
-// each item in many order
-// :joy:
-// can we do that in mongodb
-// 
+
 const prodcutSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -33,20 +26,29 @@ const prodcutSchema = new mongoose.Schema({
 		required: [true, "Staff id is required"],
 	},
 
-	category:{
+	category: {
 		type: String,
-		enum: {values: [
-			"groceries",
-			"tech", 
-			"sports", 
-			"pet", 
-			"books", 
-			"games",
-			"general"
-		]},
+		enum: {
+			values: [
+				"groceries",
+				"tech",
+				"sports",
+				"pet",
+				"books",
+				"games",
+				"general",
+			],
+		},
 		default: "general",
 		required: [true, "category id is required"],
-	}
+	},
+	image: {
+		type: String,
+		required: true,
+	},
+	cloudinary_id: {
+		type: String,
+	},
 });
 
 const ProductModel = new mongoose.model("Product", prodcutSchema);

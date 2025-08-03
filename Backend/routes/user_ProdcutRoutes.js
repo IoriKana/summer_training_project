@@ -4,8 +4,9 @@ const {protect,restrictTo}= require("../controllers/authController");
 
 const router = express.Router();
 
-router.post("/", protect,createReview);
-router.get("/:id",getReviewForProduct);
-router.get("/",protect,restrictTo("Admin","staff"),getAllReview);
+router.post("/", protect, createReview);
+router.get("/:id", getReviewForProduct);
+
+router.get("/", protect, restrictTo("Admin", "Staff"), getAllReview);
 
 module.exports = router;

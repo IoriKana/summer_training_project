@@ -8,8 +8,10 @@ const {
 const { restrictTo, protect } = require("../controllers/authController");
 
 const AccountRouter = express.Router();
+
 AccountRouter.use(protect);
 AccountRouter.use(restrictTo("Admin", "Staff"));
+
 AccountRouter.get("/", getAllAccounts);
 AccountRouter.post("/", createAccount);
 AccountRouter.get("/:email", getByEmail);

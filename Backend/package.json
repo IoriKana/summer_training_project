@@ -12,7 +12,9 @@
 		"mongoose": "^8.17.0",
 		"morgan": "^1.10.0",
 		"multer": "^2.0.2",
+		"nodemailer": "^7.0.5",
 		"nodemon": "^3.1.10",
+		"streamifier": "^0.1.1",
 		"validator": "^13.15.15"
 	},
 	"name": "social_media",
@@ -23,6 +25,6 @@
 	},
 	"author": "",
 	"license": "ISC",
-	"description": "",
+	"description": "E-commerce backend that is similar to amazon more details when we add them!",
 	"type": "commonjs"
 }

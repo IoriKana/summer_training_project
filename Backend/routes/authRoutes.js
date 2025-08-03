@@ -5,12 +5,18 @@ const {
 	protect,
 	restrictTo,
 	createStaff,
+	forgotPassword,
+	resetpassword
 } = require("../controllers/authController");
 
 const router = express.Router();
 
 router.post("/signup", signUp);
 router.post("/login", login);
-router.post("/staff", protect, restrictTo("Admin"), createStaff);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetpassword);
+
+// Admin-only route to create staff
+router.post("/create-staff", protect, restrictTo("Admin"), createStaff);
 
 module.exports = router;

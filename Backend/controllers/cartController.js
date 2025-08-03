@@ -30,7 +30,7 @@ const adjustStock = async (items) => {
         const product = await Product.findById(item.productId._id || item.productId);
         if (product) {
             product.stock -= item.quantity;
-            if (product.stock < 0) product.stock = 0; // Prevent negative stock
+            if (product.stock < 0) product.stock = 0; 
             await product.save();
         }
     }

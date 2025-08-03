@@ -1,55 +1,40 @@
 const mongoose = require("mongoose");
 
-const User = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
 	name: {
 		type: String,
 	},
-
 	account: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Account",
 		required: true,
 	},
-
 	address: {
-		country: {
-			type: String,
-		},
-		city: {
-			type: String,
-		},
-		building: {
-			type: String,
-		},
+		country: String,
+		city: String,
+		building: String,
 	},
-
-	gender: {
-		type: String,
-	},
-
+	gender: String,
 	deleted: {
 		type: Boolean,
 		default: false,
 	},
-
-	profilePic:{
+	profile_image_url: {
 		type: String,
-		default: null
+		default: null,
 	},
-
-	cloudinaryId: {
+	cloudinary_id: {
 		type: String,
-		default: null
-	}
+		default: null,
+	},
 });
-// 😂😳 
 
-User.pre(/^find/, function (next) {
+UserSchema.pre(/^find/, function (next) {
 	this.where({ deleted: { $ne: true } });
 	next();
 });
 
-User.pre(/^find/, function (next) {
+UserSchema.pre(/^find/, function (next) {
 	if (this.getOptions().autopopulate === false) {
 		return next();
 	}
@@ -57,5 +42,5 @@ User.pre(/^find/, function (next) {
 	next();
 });
 
-const UserModel = mongoose.model("User", User);
+const UserModel = mongoose.model("User", UserSchema);
 module.exports = UserModel;

@@ -1,39 +1,43 @@
-import React from 'react'
-import {assets} from '../assets/assets_frontend/assets.js'
-import { NavLink } from 'react-router-dom'
+import React from "react";
+import { NavLink } from "react-router-dom";
 
 const Navbar = () => {
-  return (
-    <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-gray-300">
-        <img className="w-44 cursor-pointer" src={assets.logo} alt="Logo" />
-        <ul className="hidden md:flex items-start gap-5 font-medium">
-            <NavLink>
-                <li className="py-1">
-                    Home
-                </li>
-                <hr className="border-none outline-none h-0.5 bg-[var(--color-primary)] w-3/5 m-auto" />
-            </NavLink>
-            <NavLink>
-                <li className="py-1">
-                    Users
-                </li>
-                <hr className="border-none outline-none h-0.5 bg-[var(--color-primary)] w-3/5 m-auto" />
-            </NavLink>
-            <NavLink>
-                <li className="py-1">
-                    About
-                </li>
-                <hr className="border-none outline-none h-0.5 bg-[var(--color-primary)] w-3/5 m-auto" />
-            </NavLink>
-            <NavLink>
-                <li className="py-1">
-                    Contact
-                </li>
-                <hr className="border-none outline-none h-0.5 bg-[var(--color-primary)] w-3/5 m-auto" />
-            </NavLink>
-        </ul>
-    </div>
-  )
-}
+	// This function will be passed to NavLink to conditionally apply classes
+	const getNavLinkClass = ({ isActive }) => {
+		// Base classes for all links
+		const baseClasses = "py-2 px-3 rounded-md transition-colors duration-300";
+		// Classes to add ONLY if the link is active
+		const activeClasses = "text-pastel-purple font-semibold";
+		// Classes for inactive links
+		const inactiveClasses = "text-dark-gray hover:bg-gray-200/50";
 
-export default Navbar
+		return `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
+	};
+
+	return (
+		// Main navbar container with the "frosted glass" effect
+		<nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md shadow-sm">
+			<div className="container mx-auto flex items-center justify-between py-3 px-4">
+				<h2 className="font-extrabold">E-Commerce App</h2>
+
+				<ul className="hidden md:flex items-center gap-4 font-medium">
+					{/* Each NavLink now uses the function to get its classes */}
+					<NavLink to="/home" className={getNavLinkClass}>
+						Home
+					</NavLink>
+					<NavLink to="/users" className={getNavLinkClass}>
+						Users
+					</NavLink>
+					<NavLink to="/about" className={getNavLinkClass}>
+						About
+					</NavLink>
+					<NavLink to="/contact" className={getNavLinkClass}>
+						Contact
+					</NavLink>
+				</ul>
+			</div>
+		</nav>
+	);
+};
+
+export default Navbar;
