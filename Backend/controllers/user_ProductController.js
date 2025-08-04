@@ -39,7 +39,7 @@ exports.getReviewForProduct = catchAsync(async (req, res, next) => {
 	const reviews = await userProduct
 		.find({ productId: req.params.id })
 		.populate("productId")
-		.populate("userID", "name");
+		.populate("userID");
 
 	if (!reviews) {
 		return next(new AppError("No reviews found for this product", 404));
@@ -52,7 +52,7 @@ exports.getAllReview = catchAsync(async (req, res, next) => {
 	const reviews = await userProduct
 		.find()
 		.populate("productId")
-		.populate("userID", "name");
+		.populate("userID");
 
 	respond(res, STATUS.OK, "All reviews retrieved successfully", reviews);
 });

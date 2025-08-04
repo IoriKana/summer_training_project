@@ -7,7 +7,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
 	return (
-		<div className="mx-4 sm:mx-[10%]">
+		<div className="mx-4">
 			<Navbar />
 			<Routes>
 				<Route path="/" element={<LoginPage />} />

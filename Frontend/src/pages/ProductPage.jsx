@@ -2,12 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { makeGet } from "../utils/makeRequest";
 import ProductName from "../components/ProductName";
+import ProductPrice from "../components/ProductPrice";
+import ProductImage from "../components/ProductImage";
+import ProductDescription from "../components/ProductDescription";
+import ProductReview from "../components/ProductReview";
 
 const ProductPage = () => {
 	const { productId } = useParams();
 	const [product, setProduct] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [reviews, setReviews] = useState([]);
 
 	useEffect(() => {
 		const getProduct = async () => {
@@ -16,6 +21,7 @@ const ProductPage = () => {
 			try {
 				const response = await makeGet(`products/${productId}`);
 				setProduct(response.data.ProductInfo);
+				setReviews(response.data.Reviews);
 			} catch (err) {
 				setError(err);
 			} finally {
@@ -37,17 +43,17 @@ const ProductPage = () => {
 
 	return (
 		<div className="bg-gradient-to-br from-pastel-pink via-pastel-purple to-pastel-blue min-h-screen p-8">
-			<div className="container mx-auto bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8">
+			<div className="container mx-auto bg-white/35 backdrop-blur-lg rounded-2xl shadow-2xl p-8">
 				<ProductName name={product.name} />
-				<p className="text-2xl text-pastel-purple mt-2">
-					{product.price.toFixed(2)}
-				</p>
-				<img
-					src={product.image}
-					alt={product.name}
-					className="my-6 rounded-lg shadow-md max-w-sm mx-auto"
-				/>
-				<p className="text-gray-700">{product.description}</p>
+				<ProductPrice price={product.price} />
+				<ProductImage image={product.image} alt={product.name} />
+				<ProductDescription desc={product.description} />
+				<div className="mt-10">
+					<h3 className="font-bold">Reviews</h3>
+					{reviews.map((review) => (
+						<ProductReview key={review._id} review={review} />
+					))}
+				</div>
 			</div>
 		</div>
 	);
