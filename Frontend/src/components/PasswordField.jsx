@@ -5,7 +5,6 @@ const PasswordField = ({ label, value, onChange }) => {
 		<div className="mb-6">
 			<label
 				htmlFor="password"
-				// Label style simplified for a cleaner look
 				className="block text-gray-600 font-medium mb-2"
 			>
 				{label}

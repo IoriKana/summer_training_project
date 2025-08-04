@@ -37,6 +37,7 @@ const prodcutSchema = new mongoose.Schema({
 				"books",
 				"games",
 				"general",
+				"currency",
 			],
 		},
 		default: "general",

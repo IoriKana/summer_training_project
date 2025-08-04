@@ -10,6 +10,7 @@ const HomePage = () => {
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
+				setIsLoading(true);
 				const response = await makeGet("products");
 				setProducts(response.data);
 			} catch (err) {

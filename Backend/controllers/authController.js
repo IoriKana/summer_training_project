@@ -6,7 +6,7 @@ const { STATUS } = require("../modules/status");
 const { respond } = require("../modules/helperMethods");
 const Staff = require("../models/staffModel");
 const User = require("../models/userModel");
-const countries = require("../utils/countries")
+const countries = require("../utils/countries");
 const { sendEmail } = require("../modules/senderModule");
 const crypto = require("crypto");
 
@@ -17,11 +17,13 @@ const signToken = (payload) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
-	const { userName, email, password, phoneNumber, country, City, Building } = req.body;
-	
+	const { userName, email, password, phoneNumber, country, City, Building } =
+		req.body;
 
 	if (!country in countries) {
-		return next(new AppError("Country or city not found  ", STATUS.BAD_REQUEST));
+		return next(
+			new AppError("Country or city not found  ", STATUS.BAD_REQUEST)
+		);
 	}
 
 	const newAccount = await Account.create({
@@ -38,8 +40,8 @@ exports.signUp = catchAsync(async (req, res, next) => {
 		address: {
 			country: country,
 			city: City,
-			building: Building
-		}
+			building: Building,
+		},
 	});
 
 	const token = signToken({ id: newAccount._id, role: newAccount.role });
@@ -101,12 +103,13 @@ exports.login = catchAsync(async (req, res, next) => {
 	respond(res, STATUS.OK, "Success", { account: safeAccountData, token });
 });
 
-
 exports.forgotPassword = catchAsync(async (req, res, next) => {
 	const { email } = req.body;
 
 	if (!email) {
-		return next(new appError("Please provide an email address", STATUS.BAD_REQUEST));
+		return next(
+			new appError("Please provide an email address", STATUS.BAD_REQUEST)
+		);
 	}
 
 	const checkEmail = await Account.findOne({ email });
@@ -117,42 +120,41 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 	const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
 
 	const hashedToken = crypto
-		.createHash('sha256')
+		.createHash("sha256")
 		.update(resetToken)
-		.digest('hex');
+		.digest("hex");
 
 	try {
 		await Account.findByIdAndUpdate(checkEmail._id, {
 			resetPasswordToken: hashedToken,
-			resetPasswordExpires: Date.now() + 10 * 60 * 1000
+			resetPasswordExpires: Date.now() + 10 * 60 * 1000,
 		});
 
-		const resetMessage = `This is an automatically generated e-mail from E-Commerce.\n\n————————————\nThank you for using a E-Commerce Account.\n\nPlease enter the following verification code to complete the e-mail address verification process.\n\nVerification code:\n${resetToken}\nPlease be aware that if you do not complete this process within ${Date.now() + 10 * 60 * 1000} minute(s), the above verification code will become invalid.\n\nIf you were not expecting to receive this e-mail, the account may have been accessed by an unauthorized third-party.\n\n-------------------------\nSincerely,\n\nE-Commerce App,\n\nYou cannot reply to this e-mail address.`;
+		const resetMessage = `This is an automatically generated e-mail from E-Commerce.\n\n————————————\nThank you for using a E-Commerce Account.\n\nPlease enter the following verification code to complete the e-mail address verification process.\n\nVerification code:\n${resetToken}\nPlease be aware that if you do not complete this process within 10 minute(s), the above verification code will become invalid.\n\nIf you were not expecting to receive this e-mail, the account may have been accessed by an unauthorized third-party.\n\n-------------------------\nSincerely,\n\nE-Commerce App,\n\nYou cannot reply to this e-mail address.`;
 		await sendEmail({
-			from: "E-app<93cc67003@smtp-brevo.com>",
+			from: "E-app",
 			to: checkEmail.email,
 			subject: "Password Reset Token",
-			text: resetMessage
+			text: resetMessage,
 		});
 
 		respond(res, STATUS.OK, "Reset token sent to your email");
-
 	} catch (err) {
 		await Account.findByIdAndUpdate(checkEmail._id, {
 			resetPasswordToken: undefined,
-			resetPasswordExpires: undefined
+			resetPasswordExpires: undefined,
 		});
 
-		console.error('Error details:', err); 
+		console.error("Error details:", err);
 
-		const errorMessage = err.code === 'ECONNREFUSED'
-			? "Could not connect to email server"
-			: err.message || "Error sending reset email";
+		const errorMessage =
+			err.code === "ECONNREFUSED"
+				? "Could not connect to email server"
+				: err.message || "Error sending reset email";
 
-		return next(new appError(
-			`Failed to send reset token: ${errorMessage}`,
-			STATUS.INTERNAL_SERVER_ERROR
-		));
+		return next(
+			new appError(`Failed to send reset token`, STATUS.INTERNAL_SERVER_ERROR)
+		);
 	}
 });
 
@@ -160,20 +162,24 @@ exports.resetpassword = catchAsync(async (req, res, next) => {
 	const { email, code, newpassword, confirmpassword } = req.body;
 
 	if (!email) {
-		return next(new appError("Please provide an email address", STATUS.BAD_REQUEST));
+		return next(
+			new appError("Please provide an email address", STATUS.BAD_REQUEST)
+		);
 	}
 
 	const checkEmail = await Account.findOne({ email });
-	if (!checkEmail || !checkEmail.resetPasswordTokenExp > Date.now() || !checkEmail.resetPasswordToken || newpassword !== newpassword2) {
+	if (
+		!checkEmail ||
+		!checkEmail.resetPasswordTokenExp > Date.now() ||
+		!checkEmail.resetPasswordToken ||
+		newpassword !== confirmpassword
+	) {
 		return next(new appError("You don't have a code !!", STATUS.UNAUTHORIZED));
 	}
-	const hashedToken = crypto
-		.createHash('sha256')
-		.update(code)
-		.digest('hex');
-	const account = await Account.findOne({ resetPasswordToken: hashedToken })
+	const hashedToken = crypto.createHash("sha256").update(code).digest("hex");
+	const account = await Account.findOne({ resetPasswordToken: hashedToken });
 	if (!account)
-		return next(new appError("You don't have a code !!", STATUS.UNAUTHORIZED));
+		return next(new appError("account not found", STATUS.UNAUTHORIZED));
 
 	account.password = newpassword;
 	account.resetPasswordToken = undefined;
@@ -182,8 +188,6 @@ exports.resetpassword = catchAsync(async (req, res, next) => {
 	const token = signToken({ id: account._id, role: account.role });
 
 	respond(res, STATUS.OK, "success", null);
-
-
 });
 exports.protect = catchAsync(async (req, res, next) => {
 	let token;
@@ -216,9 +220,9 @@ exports.protect = catchAsync(async (req, res, next) => {
 	}
 
 	let currentUserProfile;
-	if (baseAccount.role === 'Staff' || baseAccount.role === 'Admin') {
+	if (baseAccount.role === "Staff" || baseAccount.role === "Admin") {
 		currentUserProfile = await Staff.findOne({ account: baseAccount._id });
-	} else if (baseAccount.role === 'Customer') {
+	} else if (baseAccount.role === "Customer") {
 		currentUserProfile = await User.findOne({ account: baseAccount._id });
 	}
 
@@ -235,7 +239,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 	req.user = currentUserProfile;
 	next();
 });
-
 
 exports.restrictTo = (...roles) => {
 	return (req, res, next) => {
