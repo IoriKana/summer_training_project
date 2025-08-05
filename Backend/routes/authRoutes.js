@@ -6,7 +6,9 @@ const {
 	restrictTo,
 	createStaff,
 	forgotPassword,
-	resetpassword
+	resetpassword,
+	getMe,
+	logout,
 } = require("../controllers/authController");
 
 const router = express.Router();
@@ -18,5 +20,7 @@ router.post("/reset-password", resetpassword);
 
 // Admin-only route to create staff
 router.post("/create-staff", protect, restrictTo("Admin"), createStaff);
+router.post("/logout", protect, logout);
+router.get("/me", protect, getMe);
 
 module.exports = router;

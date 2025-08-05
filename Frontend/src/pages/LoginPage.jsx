@@ -2,7 +2,7 @@ import React from "react";
 import EmailField from "../components/EmailField.jsx";
 import PasswordField from "../components/PasswordField.jsx";
 import Button from "../components/Button.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
 
@@ -13,6 +13,7 @@ const LoginPage = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const { login } = useAuth();
+	const location = useLocation();
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
@@ -20,7 +21,8 @@ const LoginPage = () => {
 		setError(null);
 		try {
 			await login(email, password);
-			navigate("/home");
+			const fromPath = location.state?.from?.pathname || "/";
+			navigate(fromPath, { replace: true });
 		} catch (err) {
 			setError(err.message);
 		} finally {
@@ -68,8 +70,12 @@ const LoginPage = () => {
 				</div>
 
 				<div className="mt-8 flex justify-between text-center items-center">
-					<h5>forgot password?</h5>
-					<h5>don't have an account?</h5>
+					<Link to="/signup">
+						<h5 className="text-dark-pastel-purple">don't have an account?</h5>
+					</Link>
+					<Link to="/forgot-password">
+						<h5 className="text-dark-pastel-purple">forgot password?</h5>
+					</Link>
 				</div>
 			</form>
 		</div>

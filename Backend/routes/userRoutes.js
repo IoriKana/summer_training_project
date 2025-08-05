@@ -8,14 +8,11 @@ const {
 	updateUser,
 	deleteUser,
 	updateProfilePicture,
-	getProfile,
 } = require("../controllers/userController");
 
 const router = express.Router();
 
 router.use(protect);
-
-router.get("/profile", getProfile);
 
 router.put(
 	"/profile/image",

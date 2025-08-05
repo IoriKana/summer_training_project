@@ -1,59 +1,46 @@
-export const makePost = async (route, data) => {
-	try {
-		const response = await fetch(`http://localhost:3000/api/${route}`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-			},
-			body: JSON.stringify(data),
-		});
+const API_BASE_URL = "http://localhost:3000/api";
 
-		const responseData = await response.json();
+const makeRequest = async (endpoint, method = "GET", body = null) => {
+	let url = `${API_BASE_URL}/${endpoint}`;
 
-		if (!response.ok) {
-			throw new Error(
-				responseData.message || "An error occurred during the POST request."
-			);
-		}
+	const options = {
+		method,
+		credentials: "include",
+		headers: {},
+	};
 
-		return responseData;
-	} catch (error) {
-		console.error(`POST request to /api/${route} failed:`, error);
-		throw error;
-	}
-};
-
-export const makeGet = async (route, params) => {
-	const baseURL = `http://localhost:3000/api/${route}`;
-	let url = baseURL;
-
-	if (params) {
-		const queryParams = new URLSearchParams(params).toString();
-		if (queryParams) {
-			url += `?${queryParams}`;
+	if (body) {
+		if (body instanceof FormData) {
+			options.body = body;
+		} else {
+			options.headers["Content-Type"] = "application/json";
+			options.body = JSON.stringify(body);
 		}
 	}
 
 	try {
-		const response = await fetch(url, {
-			method: "GET",
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-			},
-		});
+		const response = await fetch(url, options);
 
-		const responseData = await response.json();
-
+		const contentType = response.headers.get("content-type");
 		if (!response.ok) {
-			throw new Error(
-				responseData.message || "An error occurred during the GET request."
-			);
+			let errorData;
+			if (contentType && contentType.indexOf("application/json") !== -1) {
+				errorData = await response.json();
+			}
+			throw new Error(errorData?.message || response.statusText);
 		}
 
-		return responseData;
+		if (contentType && contentType.indexOf("application/json") !== -1) {
+			return response.json();
+		} else {
+			return;
+		}
 	} catch (error) {
-		console.error(`GET request to ${url} failed:`, error);
+		console.error(`${method} request to ${url} failed:`, error);
 		throw error;
 	}
 };
+
+export const makeGet = (endpoint) => makeRequest(endpoint, "GET");
+export const makePost = (endpoint, body) => makeRequest(endpoint, "POST", body);
+export const makePut = (endpoint, body) => makeRequest(endpoint, "PUT", body);

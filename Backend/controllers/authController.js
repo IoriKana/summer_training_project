@@ -20,12 +20,6 @@ exports.signUp = catchAsync(async (req, res, next) => {
 	const { userName, email, password, phoneNumber, country, City, Building } =
 		req.body;
 
-	if (!country in countries) {
-		return next(
-			new AppError("Country or city not found  ", STATUS.BAD_REQUEST)
-		);
-	}
-
 	const newAccount = await Account.create({
 		userName,
 		email,
@@ -45,6 +39,17 @@ exports.signUp = catchAsync(async (req, res, next) => {
 	});
 
 	const token = signToken({ id: newAccount._id, role: newAccount.role });
+
+	const cookieOptions = {
+		expires: new Date(
+			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+		),
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+	};
+	res.cookie("jwt", token, cookieOptions);
+
 	respond(res, STATUS.CREATED, "success", {
 		account: newAccount,
 		user: newUser,
@@ -98,10 +103,30 @@ exports.login = catchAsync(async (req, res, next) => {
 	}
 
 	const token = signToken({ id: account._id, role: account.role });
-	const { password: _, ...safeAccountData } = account.toObject();
+	const cookieOptions = {
+		expires: new Date(
+			Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days in milliseconds
+		),
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+	};
 
-	respond(res, STATUS.OK, "Success", { account: safeAccountData, token });
+	res.cookie("jwt", token, cookieOptions);
+
+	account.password = undefined;
+
+	respond(res, STATUS.OK, "Success", { account: account, token });
 });
+
+exports.logout = (req, res) => {
+	res.cookie("jwt", "loggedout", {
+		expires: new Date(Date.now() + 5 * 1000), // 5 seconds
+		httpOnly: true,
+	});
+
+	res.status(200).json({ status: "success" });
+};
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
 	const { email } = req.body;
@@ -170,7 +195,7 @@ exports.resetpassword = catchAsync(async (req, res, next) => {
 	const checkEmail = await Account.findOne({ email });
 	if (
 		!checkEmail ||
-		!checkEmail.resetPasswordTokenExp > Date.now() ||
+		!checkEmail.resetPasswordTokenExp < Date.now() ||
 		!checkEmail.resetPasswordToken ||
 		newpassword !== confirmpassword
 	) {
@@ -185,20 +210,40 @@ exports.resetpassword = catchAsync(async (req, res, next) => {
 	account.resetPasswordToken = undefined;
 	account.resetPasswordTokenExp = undefined;
 	await account.save();
-	const token = signToken({ id: account._id, role: account.role });
 
-	respond(res, STATUS.OK, "success", null);
+	const token = signToken({ id: account._id, role: account.role });
+	const cookieOptions = {
+		expires: new Date(
+			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+		),
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+	};
+
+	res.cookie("jwt", token, cookieOptions);
+	account.password = undefined;
+
+	respond(res, STATUS.OK, "Password has been reset succesfully", {
+		account,
+		token,
+	});
 });
+
 exports.protect = catchAsync(async (req, res, next) => {
+	console.log("--- PROTECT MIDDLEWARE START ---");
 	let token;
 	if (
 		req.headers.authorization &&
 		req.headers.authorization.startsWith("Bearer")
 	) {
 		token = req.headers.authorization.split(" ")[1];
+	} else if (req.cookies.jwt) {
+		token = req.cookies.jwt;
 	}
 
 	if (!token) {
+		console.log("No token found. Access denied.");
 		return next(
 			new appError(
 				"You are not logged in! Please log in to get access.",
@@ -207,10 +252,13 @@ exports.protect = catchAsync(async (req, res, next) => {
 		);
 	}
 
+	console.log("Token found. Verifying...");
 	const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+	console.log("Token decoded. User ID:", decoded.id);
 
 	const baseAccount = await Account.findById(decoded.id);
 	if (!baseAccount) {
+		console.log("No account found for this token. Access denied.");
 		return next(
 			new appError(
 				"The user belonging to this token does no longer exist.",
@@ -218,15 +266,21 @@ exports.protect = catchAsync(async (req, res, next) => {
 			)
 		);
 	}
+	console.log("Base account found. Role:", baseAccount.role);
 
 	let currentUserProfile;
 	if (baseAccount.role === "Staff" || baseAccount.role === "Admin") {
+		console.log("Searching for Staff profile...");
 		currentUserProfile = await Staff.findOne({ account: baseAccount._id });
 	} else if (baseAccount.role === "Customer") {
+		console.log("Searching for User profile...");
 		currentUserProfile = await User.findOne({ account: baseAccount._id });
 	}
 
 	if (!currentUserProfile) {
+		console.log(
+			"CRITICAL: No user/staff profile found for the account. Access denied."
+		);
 		return next(
 			new appError(
 				"The associated user/staff profile could not be found.",
@@ -234,12 +288,13 @@ exports.protect = catchAsync(async (req, res, next) => {
 			)
 		);
 	}
+	console.log("User/Staff profile found:", currentUserProfile._id);
 
 	req.account = baseAccount;
 	req.user = currentUserProfile;
+	console.log("--- PROTECT MIDDLEWARE SUCCESS: Calling next() ---");
 	next();
 });
-
 exports.restrictTo = (...roles) => {
 	return (req, res, next) => {
 		if (!roles.includes(req.account.role)) {
@@ -252,4 +307,14 @@ exports.restrictTo = (...roles) => {
 		}
 		next();
 	};
+};
+
+exports.getMe = (req, res, next) => {
+	const safeAccount = req.account.toObject();
+	delete safeAccount.password;
+
+	respond(res, STATUS.OK, "Current session data retrieved", {
+		account: safeAccount,
+		profile: req.user,
+	});
 };

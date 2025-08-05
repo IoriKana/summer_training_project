@@ -69,8 +69,3 @@ exports.updateProfilePicture = catchAsync(async (req, res, next) => {
 
 	respond(res, STATUS.OK, "Profile picture updated successfully", user);
 });
-
-exports.getProfile = catchAsync(async (req, res, next) => {
-	const user = await User.findById(req.user.id);
-	respond(res, STATUS.OK, "profile:", user);
-});

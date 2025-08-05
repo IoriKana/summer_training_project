@@ -54,7 +54,7 @@ exports.CartConfirm = catchAsync(async (req, res, next) => {
 	}));
 	const VAT = 0.14;
 	const service_fees = 10;
-	const shippingPrice = countries[req.user.address.country] || 110;
+	const shippingPrice = countries[req.user.address.country] || 100;
 	const subtotal = calculateSubCost(items);
 	const totalPrice = VAT * subtotal + subtotal + service_fees + shippingPrice;
 
