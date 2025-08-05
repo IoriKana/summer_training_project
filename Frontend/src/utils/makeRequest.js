@@ -44,3 +44,5 @@ const makeRequest = async (endpoint, method = "GET", body = null) => {
 export const makeGet = (endpoint) => makeRequest(endpoint, "GET");
 export const makePost = (endpoint, body) => makeRequest(endpoint, "POST", body);
 export const makePut = (endpoint, body) => makeRequest(endpoint, "PUT", body);
+export const makePatch = (endpoint, body) =>
+	makeRequest(endpoint, "PATCH", body);

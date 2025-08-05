@@ -3,6 +3,7 @@ import { City } from "country-state-city";
 
 const CitySelect = ({ label, value, onChange, countryCode }) => {
 	const cities = City.getCitiesOfCountry(countryCode) || [];
+
 	return (
 		<div className="mb-6">
 			<label
@@ -16,8 +17,8 @@ const CitySelect = ({ label, value, onChange, countryCode }) => {
 				name="city"
 				value={value}
 				onChange={onChange}
-				disabled={!countryCode}
-				className="w-full p-3 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pastel-purple transition-shadow disabled:bg-gray-200"
+				disabled={cities.length === 0}
+				className="w-full p-3 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pastel-purple transition-shadow disabled:bg-gray-200 disabled:cursor-not-allowed"
 			>
 				<option value="" disabled>
 					{countryCode ? "Select a city..." : "Please select a country first"}
@@ -32,4 +33,5 @@ const CitySelect = ({ label, value, onChange, countryCode }) => {
 		</div>
 	);
 };
+
 export default CitySelect;

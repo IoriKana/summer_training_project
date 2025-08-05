@@ -19,9 +19,7 @@ const CountrySelect = ({ label, value, onChange }) => {
 				onChange={onChange}
 				className="w-full p-3 bg-gray-50 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pastel-purple transition-shadow"
 			>
-				<option value="" disabled>
-					Select a country...
-				</option>
+				<option value="">Select a country...</option>
 
 				{countries.map((country) => (
 					<option key={country.isoCode} value={country.isoCode}>

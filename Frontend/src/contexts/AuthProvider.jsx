@@ -45,11 +45,21 @@ export function AuthProvider({ children }) {
 		}
 	};
 
-	const value = { account, authToken, login, logout, isLoading };
+	const updateAuthAccount = (newAccountData) => {
+		setAccount(newAccountData);
+	};
+
+	const value = {
+		account,
+		authToken,
+		login,
+		logout,
+		isLoading,
+		updateAuthAccount,
+	};
 
 	return (
 		<AuthContext.Provider value={value}>
-			{/* Render nothing until the initial session check is complete */}
 			{isLoading ? null : children}
 		</AuthContext.Provider>
 	);

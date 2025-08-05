@@ -17,7 +17,7 @@ const signToken = (payload) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
-	const { userName, email, password, phoneNumber, country, City, Building } =
+	const { userName, email, password, phoneNumber, country, city, building } =
 		req.body;
 
 	const newAccount = await Account.create({
@@ -33,8 +33,8 @@ exports.signUp = catchAsync(async (req, res, next) => {
 		account: newAccount._id,
 		address: {
 			country: country,
-			city: City,
-			building: Building,
+			city: city,
+			building: building,
 		},
 	});
 

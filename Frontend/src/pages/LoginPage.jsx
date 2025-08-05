@@ -5,6 +5,7 @@ import Button from "../components/Button.jsx";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth.js";
+import ErrorMessage from "../components/ErrorMessage.jsx";
 
 const LoginPage = () => {
 	const navigate = useNavigate();
@@ -55,11 +56,7 @@ const LoginPage = () => {
 					onChange={(e) => setPassword(e.target.value)}
 				/>
 
-				{error && (
-					<div className="bg-pink-100 text-red-700 font-medium p-3 mb-6 rounded-lg text-center">
-						<p>{error}</p>
-					</div>
-				)}
+				<ErrorMessage error={error} />
 
 				<div className="mt-8">
 					<Button
