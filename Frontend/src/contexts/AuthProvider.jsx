@@ -4,8 +4,9 @@ import { makePost, makeGet } from "../utils/makeRequest.js";
 
 export function AuthProvider({ children }) {
 	const [account, setAccount] = useState(null);
-	const [authToken, setAuthToken] = useState(null);
-	const [isLoading, setIsLoading] = useState(true); // This state is correct
+	const [isLoading, setIsLoading] = useState(true);
+
+	const authToken = account ? "session_active" : null;
 
 	useEffect(() => {
 		const checkUserSession = async () => {
@@ -13,12 +14,10 @@ export function AuthProvider({ children }) {
 				const response = await makeGet("auth/me");
 				if (response.data && response.data.account) {
 					setAccount(response.data.account);
-					setAuthToken("session_active");
 				}
 			} catch (error) {
 				console.log("No active session found.", error);
 				setAccount(null);
-				setAuthToken(null);
 			} finally {
 				setIsLoading(false);
 			}
@@ -30,18 +29,14 @@ export function AuthProvider({ children }) {
 		const response = await makePost("auth/login", { email, password });
 		if (response.data && response.data.account) {
 			setAccount(response.data.account);
-			setAuthToken(response.data.token);
-		} else {
-			throw new Error("Login response did not contain account data.");
 		}
 	};
 
 	const logout = async () => {
 		try {
-			await makePost("auth/logout", null);
+			await makeGet("auth/logout");
 		} finally {
 			setAccount(null);
-			setAuthToken(null);
 		}
 	};
 
@@ -60,7 +55,7 @@ export function AuthProvider({ children }) {
 
 	return (
 		<AuthContext.Provider value={value}>
-			{isLoading ? null : children}
+			{!isLoading && children}
 		</AuthContext.Provider>
 	);
 }

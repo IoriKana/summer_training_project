@@ -9,7 +9,7 @@ const formStars = (numOfStars) => {
 
 const ProductReview = ({ review }) => {
 	const name = review.userID?.name || "Anonymous";
-	const imageUrl = review.userID?.profile_image_url;
+	const imageUrl = review.userID?.account?.profile_image_url;
 
 	return (
 		<div className="flex items-start gap-4 p-4 border-t border-gray-200">

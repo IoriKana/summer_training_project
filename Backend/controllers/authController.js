@@ -8,7 +8,9 @@ const Staff = require("../models/staffModel");
 const User = require("../models/userModel");
 const countries = require("../utils/countries");
 const { sendEmail } = require("../modules/senderModule");
+const Ban = require("../models/banModel");
 const crypto = require("crypto");
+const { log } = require("console");
 
 const signToken = (payload) => {
 	return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -87,7 +89,16 @@ exports.createStaff = catchAsync(async (req, res, next) => {
 		token,
 	});
 });
-
+function msToTime(ms) {
+	let seconds = (ms / 1000).toFixed(1);
+	let minutes = (ms / (1000 * 60)).toFixed(1);
+	let hours = (ms / (1000 * 60 * 60)).toFixed(1);
+	let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
+	if (seconds < 60) return seconds + " Sec";
+	else if (minutes < 60) return minutes + " Min";
+	else if (hours < 24) return hours + " Hrs";
+	else return days + " Days";
+}
 exports.login = catchAsync(async (req, res, next) => {
 	const { email, password } = req.body;
 	if (!email || !password) {
@@ -100,6 +111,26 @@ exports.login = catchAsync(async (req, res, next) => {
 		return next(
 			new appError("incorrect email or password", STATUS.UNAUTHORIZED)
 		);
+	}
+	const userban = await Ban.findOne({ userId: account._id });
+
+	if (userban !== null) {
+		const staffAccount = await Account.findById(userban.staffId);
+		if (userban.banDuration === undefined || userban.banDuration > Date.now()) {
+			return next(
+				new appError(
+					`You have been banned by ${
+						staffAccount.userName
+					}, time remaining ${msToTime(userban.banDuration - Date.now())},
+					${userban.banReason}
+					 Please contact us via our email: eapp2035@gmail.com`,
+					STATUS.UNAUTHORIZED
+				)
+			);
+		}
+		if (userban.banDuration < Date.now()) {
+			await Ban.findOneAndDelete({ userId: account._id });
+		}
 	}
 
 	const token = signToken({ id: account._id, role: account.role });
@@ -277,7 +308,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 		currentUserProfile = await User.findOne({ account: baseAccount._id });
 	}
 
-	if (!currentUserProfile) {
+	if (!currentUserProfile || baseAccount.isBanned) {
 		console.log(
 			"CRITICAL: No user/staff profile found for the account. Access denied."
 		);

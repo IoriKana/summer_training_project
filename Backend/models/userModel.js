@@ -15,18 +15,6 @@ const UserSchema = new mongoose.Schema({
 		building: String,
 	},
 	gender: String,
-	deleted: {
-		type: Boolean,
-		default: false,
-	},
-	profile_image_url: {
-		type: String,
-		default: null,
-	},
-	cloudinary_id: {
-		type: String,
-		default: null,
-	},
 });
 
 UserSchema.pre(/^find/, function (next) {

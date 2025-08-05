@@ -2,6 +2,7 @@ const Account = require("../models/accountModel");
 const { catchAsync } = require("../utils/catchAsync");
 const { respond } = require("../modules/helperMethods");
 const { STATUS } = require("../modules/status");
+const cloudinary = require("cloudinary").v2;
 const AppError = require("../utils/appError");
 
 const User = require("../models/userModel");
@@ -29,27 +30,28 @@ exports.createAccount = catchAsync(async (req, res, next) => {
 	});
 });
 
-exports.getByEmail = catchAsync(async (req, res, next) => {
-	const getAccount = await Account.findOne({ email: req.params.email });
+exports.getById = catchAsync(async (req, res, next) => {
+	const account = await Account.findById(req.account._id);
 
 	if (!getAccount) {
 		return next(new AppError("account has not been found", STATUS.NOT_FOUND));
 	}
-	respond(res, STATUS.OK, "account has been found : ", getAccount);
+	respond(res, STATUS.OK, "account has been found : ", account);
 });
 
 exports.UpdateAccount = catchAsync(async (req, res, next) => {
-
 	const updatedAccount = await Account.findByIdAndUpdate(
 		req.account.id,
 		req.body,
-		{ new: true, runValidators: true } 
+		{ new: true, runValidators: true }
 	);
 
 	if (!updatedAccount) {
-		
 		return next(
-			new AppError("Account not found or could not be updated.", STATUS.NOT_FOUND)
+			new AppError(
+				"Account not found or could not be updated.",
+				STATUS.NOT_FOUND
+			)
 		);
 	}
 	respond(res, STATUS.OK, "Account has been updated", updatedAccount);
@@ -59,15 +61,40 @@ exports.deleteAccount = catchAsync(async (req, res, next) => {
 	const deletedAccount = await Account.findByIdAndDelete(req.account.id);
 
 	if (!deletedAccount) {
-		return next(new AppError("Account to be deleted was not found.", STATUS.NOT_FOUND));
+		return next(
+			new AppError("Account to be deleted was not found.", STATUS.NOT_FOUND)
+		);
 	}
 
-  
-    if (deletedAccount.role === 'Staff' || deletedAccount.role === 'Admin') {
-        await Staff.findOneAndDelete({ account: deletedAccount._id });
-    } else {
-        await User.findOneAndDelete({ account: deletedAccount._id });
-    }
+	if (deletedAccount.role === "Staff" || deletedAccount.role === "Admin") {
+		await Staff.findOneAndDelete({ account: deletedAccount._id });
+	} else {
+		await User.findOneAndDelete({ account: deletedAccount._id });
+	}
 
 	respond(res, STATUS.OK, "Account has been successfully deleted");
+});
+
+exports.updateProfilePicture = catchAsync(async (req, res, next) => {
+	const account = await Account.findById(req.user.account._id);
+
+	if (!req.cloudinary) {
+		return next(
+			new AppError(
+				"Image upload failed, no file data received.",
+				STATUS.BAD_REQUEST
+			)
+		);
+	}
+
+	if (account.cloudinary_id) {
+		await cloudinary.uploader.destroy(account.cloudinary_id);
+	}
+
+	account.profile_image_url = req.cloudinary.secure_url;
+	account.cloudinary_id = req.cloudinary.public_id;
+
+	await account.save({ validateBeforeSave: false });
+
+	respond(res, STATUS.OK, "Profile picture updated successfully", account);
 });

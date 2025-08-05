@@ -35,13 +35,21 @@ const Account = new mongoose.Schema(
 			default: "Customer",
 		},
 		resetPasswordToken: {
-		type : String,
-		default:undefined
-	},
-	resetPasswordTokenExp :{
-		type : Date,
-		default:undefined
-	},
+			type: String,
+			default: undefined,
+		},
+		resetPasswordTokenExp: {
+			type: Date,
+			default: undefined,
+		},
+		profile_image_url: {
+			type: String,
+			default: null,
+		},
+		cloudinary_id: {
+			type: String,
+			default: null,
+		},
 	},
 	{
 		toJSON: { virtuals: true },
@@ -51,6 +59,9 @@ const Account = new mongoose.Schema(
 );
 
 Account.pre("save", async function (next) {
+	if (!this.isModified("password")) {
+		return next();
+	}
 	this.password = await bcrypt.hash(this.password, 12);
 	next();
 });
