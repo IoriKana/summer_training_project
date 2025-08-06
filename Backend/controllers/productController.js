@@ -35,12 +35,19 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 
 exports.GetProductById = catchAsync(async (req, res, next) => {
 	const getProduct = await Product.findById(req.params.id);
-	const getReview = await review
-		.find({ productId: req.params.id })
-		.populate("userID");
 	if (!getProduct) {
 		return next(new AppError("Product not found ", STATUS.NOT_FOUND));
 	}
+
+	const getReview = await review.find({ productId: req.params.id }).populate({
+		path: "userID",
+		model: "User",
+		populate: {
+			path: "account",
+			model: "Account",
+			select: "userName profile_image_url isBanned",
+		},
+	});
 
 	respond(res, STATUS.OK, "Product Found ", {
 		ProductInfo: getProduct,

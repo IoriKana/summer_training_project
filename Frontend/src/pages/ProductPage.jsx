@@ -13,6 +13,7 @@ import ProductDescription from "../components/ProductDescription";
 import ProductReview from "../components/ProductReview";
 import Button from "../components/Button";
 import { useAuth } from "../hooks/useAuth";
+import { useCart } from "../hooks/useCart";
 
 const ProductPage = () => {
 	const { productId } = useParams();
@@ -23,6 +24,8 @@ const ProductPage = () => {
 	const { authToken } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
+	const { addToCart } = useCart();
+	const [quantity, setQuantity] = useState(1);
 
 	useEffect(() => {
 		const getProduct = async () => {
@@ -41,9 +44,20 @@ const ProductPage = () => {
 		getProduct();
 	}, [productId]);
 
+	const incrementQuantity = () => {
+		if (quantity < product.stock) {
+			setQuantity((q) => q + 1);
+		}
+	};
+	const decrementQuantity = () => {
+		if (quantity > 1) {
+			setQuantity((q) => q - 1);
+		}
+	};
+
 	const handleAddToCart = () => {
 		if (authToken) {
-			alert("item added to cart");
+			addToCart(product, quantity);
 		} else {
 			navigate("/login", { state: { from: location } });
 		}
@@ -66,24 +80,72 @@ const ProductPage = () => {
 					<div className="lg:w-1/2">
 						<ProductImage image={product.image} alt={product.name} />
 					</div>
-					<div className="my-8 lg:my-0 lg:w-1/2 flex items-center justify-center">
-						<div className="text-center lg:text-right">
+					<div className="lg:w-1/2 mt-8 lg:mt-0 flex flex-col justify-center">
+						<div className="text-center lg:text-left">
 							<ProductName name={product.name} />
 							<ProductPrice price={product.price} />
-							<div className="text-center mt-10">
-								<Button text="Add to cart" onClick={handleAddToCart} />
+						</div>
+
+						<div className="mt-6 space-y-4">
+							<div className="flex items-center gap-2 justify-center lg:justify-start">
+								{product.stock > 0 ? (
+									<>
+										<span className="w-3 h-3 bg-green-500 rounded-full"></span>
+										<p className="text-sm font-medium text-gray-700">
+											{product.stock} available
+										</p>
+									</>
+								) : (
+									<p className="text-sm font-medium text-red-600">
+										Out of stock
+									</p>
+								)}
+							</div>
+
+							<div className="flex items-center gap-4">
+								<div className="flex items-center border border-gray-300 rounded-lg">
+									<button
+										onClick={decrementQuantity}
+										className="px-3 py-2 text-lg font-bold text-gray-600 hover:bg-gray-100 rounded-l-lg"
+										disabled={product.stock === 0}
+									>
+										-
+									</button>
+									<span className="px-4 py-2 font-bold text-dark-gray">
+										{quantity}
+									</span>
+									<button
+										onClick={incrementQuantity}
+										className="px-3 py-2 text-lg font-bold text-gray-600 hover:bg-gray-100 rounded-r-lg"
+										disabled={product.stock === 0}
+									>
+										+
+									</button>
+								</div>
+								<div className="flex-1">
+									<Button
+										text="Add to cart"
+										onClick={handleAddToCart}
+										disabled={product.stock === 0}
+									/>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<ProductDescription desc={product.description} />
-				<div className="mt-10">
-					{reviews.length > 1 && (
-						<h3 className="text-xl font-bold text-dark-gray mb-2">Reviews</h3>
+
+				<div className="mt-12 pt-8 border-t border-gray-200">
+					<ProductDescription desc={product.description} />
+				</div>
+				<div className="mt-8 pt-6 border-t border-gray-200">
+					<h3 className="text-xl font-bold text-dark-gray mb-2">Reviews</h3>
+					{reviews.length > 0 ? (
+						reviews.map((review) => (
+							<ProductReview key={review._id} review={review} />
+						))
+					) : (
+						<p className="text-gray-600">No reviews for this product yet.</p>
 					)}
-					{reviews.map((review) => (
-						<ProductReview key={review._id} review={review} />
-					))}
 				</div>
 			</div>
 		</div>

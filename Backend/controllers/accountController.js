@@ -39,11 +39,21 @@ exports.getById = catchAsync(async (req, res, next) => {
 	respond(res, STATUS.OK, "account has been found : ", account);
 });
 
-exports.UpdateAccount = catchAsync(async (req, res, next) => {
+const filterObj = (obj, ...allowedFields) => {
+	const newObj = {};
+	Object.keys(obj).forEach((el) => {
+		if (allowedFields.includes(el)) newObj[el] = obj[el];
+	});
+	return newObj;
+};
+
+exports.updateMyAccount = catchAsync(async (req, res, next) => {
+	const filteredBody = filterObj(req.body, "userName", "email");
+
 	const updatedAccount = await Account.findByIdAndUpdate(
-		req.account.id,
-		req.body,
-		{ new: true, runValidators: true }
+		req.account._id,
+		filteredBody,
+		{ new: true }
 	);
 
 	if (!updatedAccount) {
@@ -54,7 +64,14 @@ exports.UpdateAccount = catchAsync(async (req, res, next) => {
 			)
 		);
 	}
-	respond(res, STATUS.OK, "Account has been updated", updatedAccount);
+	if (req.user && filteredBody.userName) {
+		req.user.name = filteredBody.userName;
+		await req.user.save({ validateBeforeSave: false });
+	}
+
+	respond(res, STATUS.OK, "Account has been updated", {
+		account: updatedAccount,
+	});
 });
 
 exports.deleteAccount = catchAsync(async (req, res, next) => {

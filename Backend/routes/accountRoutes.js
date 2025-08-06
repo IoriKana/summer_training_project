@@ -7,6 +7,7 @@ const {
 	deleteAccount,
 	getById,
 	updateProfilePicture,
+	updateMyAccount,
 } = require("../controllers/accountController");
 const { restrictTo, protect } = require("../controllers/authController");
 
@@ -19,9 +20,9 @@ AccountRouter.put(
 	streamUpload("user-profile-pics"),
 	updateProfilePicture
 );
+AccountRouter.patch("/me", updateMyAccount);
 
 AccountRouter.use(restrictTo("Admin", "Staff"));
-
 AccountRouter.get("/", getAllAccounts);
 AccountRouter.post("/", createAccount);
 AccountRouter.get("/:id", getById);

@@ -3,6 +3,7 @@ import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import logoUrl from "../assets/logo.svg";
 import ProfileImageSmall from "./ProfileImageSmall";
+import { useCart } from "../hooks/useCart";
 
 const Navbar = () => {
 	const { authToken, logout, account } = useAuth();
@@ -18,6 +19,8 @@ const Navbar = () => {
 		logout();
 		navigate("/login");
 	};
+
+	const { itemCount } = useCart();
 
 	return (
 		<nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md shadow-sm">
@@ -39,6 +42,16 @@ const Navbar = () => {
 
 					{authToken ? (
 						<>
+							<NavLink to="/cart" className={getNavLinkClass}>
+								<div className="relative">
+									Cart
+									{itemCount > 0 && (
+										<span className="absolute -top-2 -right-3 bg-pastel-pink text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+											{itemCount}
+										</span>
+									)}
+								</div>
+							</NavLink>
 							<button
 								onClick={handleLogout}
 								className="py-2 px-3 rounded-md text-dark-gray hover:bg-gray-200/50"
