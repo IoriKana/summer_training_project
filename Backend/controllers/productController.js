@@ -1,22 +1,43 @@
-const STATUS = require("../modules/status").STATUS;
-const respond = require("../modules/helperMethods").respond;
-const { catchAsync } = require("../utils/catchAsync");
 const Product = require("../models/productModel");
-const ApiFilter = require("../utils/apiFliter");
-const review = require("../models/user_productModel");
+const UserProduct = require("../models/user_productModel"); // <-- Using your exact model name
+const { catchAsync } = require("../utils/catchAsync");
+const { respond } = require("../modules/helperMethods");
+const STATUS = require("../modules/status").STATUS;
+const AppError = require("../utils/appError");
 
+// This function likely exists in your controller already
 exports.getAllProducts = catchAsync(async (req, res, next) => {
-	const filter = new ApiFilter(Product.find(), req.query)
-		.filter()
-		.sort()
-		.fields()
-		.pagination();
-
-	const products = await filter.query;
-
-	respond(res, STATUS.OK, "products:", products);
+	const products = await Product.find();
+	respond(res, STATUS.OK, "Products retrieved.", products);
 });
 
+// --- THIS IS THE FUNCTION TO REPLACE/UPDATE ---
+exports.GetProductById = catchAsync(async (req, res, next) => {
+	const { id } = req.params;
+
+	// 1. Fetch the main product information
+	const productInfo = await Product.findById(id);
+
+	if (!productInfo) {
+		return next(
+			new AppError("No product found with that ID", STATUS.NOT_FOUND)
+		);
+	}
+
+	// 2. Fetch the reviews for that product and populate the author's details
+	const reviews = await UserProduct.find({ productId: id })
+		.populate({
+			path: "accountID", // This is the field in your user_productModel
+			select: "userName profile_image_url", // The fields you want from the Account model
+		})
+		.sort({ date: -1 });
+
+	// 3. Send both back in the format your frontend expects
+	respond(res, STATUS.OK, "Product and reviews retrieved successfully", {
+		ProductInfo: productInfo,
+		Reviews: reviews,
+	});
+});
 exports.createProduct = catchAsync(async (req, res, next) => {
 	const newProduct = new Product({
 		name: req.body.name,
@@ -31,28 +52,6 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 	await newProduct.save();
 
 	respond(res, STATUS.CREATED, "Product created successfully", newProduct);
-});
-
-exports.GetProductById = catchAsync(async (req, res, next) => {
-	const getProduct = await Product.findById(req.params.id);
-	if (!getProduct) {
-		return next(new AppError("Product not found ", STATUS.NOT_FOUND));
-	}
-
-	const getReview = await review.find({ productId: req.params.id }).populate({
-		path: "userID",
-		model: "User",
-		populate: {
-			path: "account",
-			model: "Account",
-			select: "userName profile_image_url isBanned",
-		},
-	});
-
-	respond(res, STATUS.OK, "Product Found ", {
-		ProductInfo: getProduct,
-		Reviews: getReview,
-	});
 });
 
 exports.updateProduct = catchAsync(async (req, res, next) => {

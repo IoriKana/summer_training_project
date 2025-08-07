@@ -1,12 +1,18 @@
 const express = require("express");
-const {createReview,getReviewForProduct,getAllReview}= require("../controllers/user_ProductController");
-const {protect,restrictTo}= require("../controllers/authController");
+const { protect } = require("../controllers/authController");
+const {
+	createReview,
+	getReviewForProduct,
+	checkIfUserCanReview,
+} = require("../controllers/user_ProductController");
 
 const router = express.Router();
 
-router.post("/", protect, createReview);
-router.get("/:id", getReviewForProduct);
+router.route("/:id").get(getReviewForProduct);
 
-router.get("/", protect, restrictTo("Admin", "Staff"), getAllReview);
+router.use(protect);
+
+router.route("/").post(createReview);
+router.route("/check/:productId").get(checkIfUserCanReview);
 
 module.exports = router;

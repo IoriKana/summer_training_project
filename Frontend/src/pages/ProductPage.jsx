@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
 	useParams,
 	Navigate,
@@ -15,6 +15,8 @@ import Button from "../components/Button";
 import QuantitySelect from "../components/QuantitySelect";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
+import CreateReviewForm from "../components/CreateReviewForm";
+import SmallButton from "../components/SmallButton"; // <-- Import the new component
 
 const ProductPage = () => {
 	const { productId } = useParams();
@@ -29,23 +31,50 @@ const ProductPage = () => {
 	const { addToCart } = useCart();
 	const [quantity, setQuantity] = useState(1);
 
+	const [canReview, setCanReview] = useState(false);
+	const [isCheckingReview, setIsCheckingReview] = useState(true);
+	const [isReviewFormVisible, setIsReviewFormVisible] = useState(false);
+
+	const getProductAndReviews = useCallback(async () => {
+		setIsLoading(true);
+		setError(null);
+		try {
+			const response = await makeGet(`products/${productId}`);
+			setProduct(response.data.ProductInfo);
+			setReviews(response.data.Reviews);
+		} catch (err) {
+			setError(err.message || "Failed to load product.");
+		} finally {
+			setIsLoading(false);
+		}
+	}, [productId]);
+
 	useEffect(() => {
-		const getProduct = async () => {
-			setIsLoading(true);
-			setError(null);
-			setSuccessMessage("");
-			try {
-				const response = await makeGet(`products/${productId}`);
-				setProduct(response.data.ProductInfo);
-				setReviews(response.data.Reviews);
-			} catch (err) {
-				setError(err);
-			} finally {
-				setIsLoading(false);
+		getProductAndReviews();
+	}, [getProductAndReviews]);
+
+	useEffect(() => {
+		const checkReviewStatus = async () => {
+			if (authToken && product) {
+				setIsCheckingReview(true);
+				try {
+					const res = await makeGet(`review/check/${product._id}`);
+					setCanReview(res.data.canReview);
+				} catch (error) {
+					setCanReview(false);
+				} finally {
+					setIsCheckingReview(false);
+				}
+			} else {
+				setCanReview(false);
+				setIsCheckingReview(false);
 			}
 		};
-		getProduct();
-	}, [productId]);
+
+		if (!isLoading) {
+			checkReviewStatus();
+		}
+	}, [authToken, product, isLoading]);
 
 	const incrementQuantity = () => {
 		if (quantity < product.stock) {
@@ -64,7 +93,7 @@ const ProductPage = () => {
 			setSuccessMessage(`${quantity} of ${product.name} added to cart!`);
 			e.target.disabled = true;
 			setTimeout(() => {
-				e.target.disabled = false;
+				if (e.target) e.target.disabled = false;
 				setSuccessMessage("");
 			}, 3000);
 		} else {
@@ -84,7 +113,7 @@ const ProductPage = () => {
 
 	return (
 		<div className="bg-gradient-to-br from-pastel-pink via-pastel-purple to-pastel-blue min-h-screen p-8">
-			<div className="container mx-auto bg-white/35 backdrop-blur-lg rounded-2xl shadow-2xl p-8">
+			<div className="container mx-auto bg-white/60 backdrop-blur-lg rounded-2xl shadow-2xl p-8">
 				<div className="lg:flex lg:gap-12">
 					<div className="lg:w-1/2">
 						<ProductImage image={product.image} alt={product.name} />
@@ -94,7 +123,6 @@ const ProductPage = () => {
 							<ProductName name={product.name} />
 							<ProductPrice price={product.price} />
 						</div>
-
 						<div className="mt-6 space-y-2">
 							<div className="flex items-center gap-2 justify-center lg:justify-start">
 								{product.stock > 0 ? (
@@ -110,7 +138,6 @@ const ProductPage = () => {
 									</p>
 								)}
 							</div>
-
 							<div className="flex items-center gap-4">
 								<QuantitySelect
 									product={product}
@@ -121,14 +148,11 @@ const ProductPage = () => {
 								<div className="flex-1">
 									<Button
 										text="Add to cart"
-										onClick={(e) => {
-											handleAddToCart(e);
-										}}
+										onClick={handleAddToCart}
 										disabled={product.stock === 0}
 									/>
 								</div>
 							</div>
-
 							<div className="h-6 text-center">
 								{successMessage && (
 									<p className="text-green-600 font-semibold">
@@ -143,8 +167,30 @@ const ProductPage = () => {
 				<div className="mt-12 pt-8 border-t border-gray-200">
 					<ProductDescription desc={product.description} />
 				</div>
+
 				<div className="mt-8 pt-6 border-t border-gray-200">
-					<h3 className="text-xl font-bold text-dark-gray mb-2">Reviews</h3>
+					<div className="flex justify-between items-center mb-4">
+						<h3 className="text-xl font-bold text-dark-gray">Reviews</h3>
+						{canReview && !isReviewFormVisible && (
+							<SmallButton
+								text="Write a Review"
+								onClick={() => setIsReviewFormVisible(true)}
+							/>
+						)}
+					</div>
+
+					{isReviewFormVisible && (
+						<div className="mb-8">
+							<CreateReviewForm
+								productId={product._id}
+								onReviewSubmit={() => {
+									setIsReviewFormVisible(false);
+									getProductAndReviews();
+								}}
+							/>
+						</div>
+					)}
+
 					{reviews.length > 0 ? (
 						reviews.map((review) => (
 							<ProductReview key={review._id} review={review} />
