@@ -4,27 +4,44 @@ import { useAuth } from "../hooks/useAuth.js";
 import {
 	makeGet,
 	makePost,
-	makeDelete,
 	makePatch,
+	makeDelete,
 } from "../utils/makeRequest.js";
 
-export const CartProvider = ({ children }) => {
+const CartProvider = ({ children }) => {
 	const [cartItems, setCartItems] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
-	const { authToken } = useAuth();
+	const { authToken, isLoading: isAuthLoading } = useAuth();
 
 	useEffect(() => {
 		const fetchCart = async () => {
-			if (!authToken) {
-				setCartItems([]);
-			} else {
+			if (isAuthLoading) {
+				return;
+			}
+
+			if (authToken) {
 				setIsLoading(true);
 				try {
+					console.log("Attempting to fetch cart...");
 					const response = await makeGet("cart");
-					setCartItems(response.items || []);
+
+					console.log("Cart API Response:", response);
+
+					if (response && response.items) {
+						setCartItems(response.items);
+					} else if (response.data && response.data.items) {
+						setCartItems(response.data.items);
+					} else {
+						console.warn(
+							"Cart response received, but it did not contain a recognized '.items' array.",
+							response
+						);
+						setCartItems([]);
+					}
 				} catch (err) {
-					if (err.message.includes("Cart not found")) {
+					console.error("Failed to fetch cart:", err);
+					if (err.message?.includes("Cart not found")) {
 						setCartItems([]);
 					} else {
 						setError(err.message);
@@ -32,23 +49,27 @@ export const CartProvider = ({ children }) => {
 				} finally {
 					setIsLoading(false);
 				}
+			} else {
+				setCartItems([]);
 			}
 		};
 		fetchCart();
-	}, [authToken]);
+	}, [authToken, isAuthLoading]);
 
 	const addToCart = async (product, quantity) => {
 		const optimisticItem = { ...product, quantity, productId: product };
-		setCartItems((i) => {
-			const existingItem = i.find((item) => item.productId._id === product._id);
+		setCartItems((prevItems) => {
+			const existingItem = prevItems.find(
+				(item) => item.productId?._id === product._id
+			);
 			if (existingItem) {
-				return i.map((item) =>
-					item.productId._id === product._id
+				return prevItems.map((item) =>
+					item.productId?._id === product._id
 						? { ...item, quantity: item.quantity + quantity }
 						: item
 				);
 			}
-			return [...i, optimisticItem];
+			return [...prevItems, optimisticItem];
 		});
 
 		try {
@@ -61,9 +82,10 @@ export const CartProvider = ({ children }) => {
 			}
 		}
 	};
+
 	const updateCartProductQuantity = async (productId, newQuantity) => {
-		setCartItems((i) =>
-			i.map((item) =>
+		setCartItems((prevItems) =>
+			prevItems.map((item) =>
 				item.productId?._id === productId
 					? { ...item, quantity: newQuantity }
 					: item
@@ -79,8 +101,11 @@ export const CartProvider = ({ children }) => {
 			}
 		}
 	};
+
 	const removeFromCart = async (productId) => {
-		setCartItems((i) => i.filter((item) => item.productId._id !== productId));
+		setCartItems((prevItems) =>
+			prevItems.filter((item) => item.productId?._id !== productId)
+		);
 		try {
 			await makeDelete(`cart/items/${productId}`);
 		} catch (err) {
@@ -92,6 +117,10 @@ export const CartProvider = ({ children }) => {
 		}
 	};
 
+	const clearCart = () => {
+		setCartItems([]);
+	};
+
 	const value = {
 		cartItems,
 		isLoading,
@@ -99,6 +128,7 @@ export const CartProvider = ({ children }) => {
 		addToCart,
 		updateCartProductQuantity,
 		removeFromCart,
+		clearCart,
 		itemCount: cartItems.reduce((total, item) => total + item.quantity, 0),
 	};
 

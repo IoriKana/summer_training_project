@@ -16,34 +16,34 @@ const orderSchema = new mongoose.Schema({
 		required: [true, "Payment status is required"],
 	},
 
-	orderDate:{
+	orderDate: {
 		type: Date,
 		required: [true, "Order date is required"],
-		default: Date.now()
+		default: Date.now(),
 	},
 
 	totalCost: {
 		type: Number,
 		required: [true, "Total cost is required"],
-		min: [0, "Total cost cannot be negative"]
+		min: [0, "Total cost cannot be negative"],
 	},
 
-	user: {
+	account: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "User",
+		ref: "Account",
 		required: true,
 	},
-	
+
 	items: [
-    {
-    	productId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Product"
-    	},
-    	quantity: Number,
-		price: Number,
-    }
-  ],
+		{
+			productId: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Product",
+			},
+			quantity: Number,
+			price: Number,
+		},
+	],
 
 	address: {
 		country: {
@@ -56,6 +56,6 @@ const orderSchema = new mongoose.Schema({
 			type: String,
 		},
 	},
-})
+});
 
 module.exports = new mongoose.model("Order", orderSchema);

@@ -59,3 +59,5 @@ export function AuthProvider({ children }) {
 		</AuthContext.Provider>
 	);
 }
+
+// for some reason, each time i refresh the page, it logs me out, check all the contexts and hooks and find out the reason and fix it

@@ -9,7 +9,7 @@ const CartItem = ({ item, onRemove, onUpdateQuantity }) => {
 
 	const handleQuantityChange = (newQuantity) => {
 		if (newQuantity >= 1 && newQuantity <= product.stock) {
-			onUpdateQuantity(product._id, newQuantity);
+			onUpdateQuantity(newQuantity);
 		}
 	};
 
@@ -55,7 +55,7 @@ const CartItem = ({ item, onRemove, onUpdateQuantity }) => {
 			</div>
 
 			<button
-				onClick={() => onRemove(product._id)}
+				onClick={onRemove}
 				className="text-gray-500 hover:text-red-500 font-bold text-xl"
 			>
 				&times;

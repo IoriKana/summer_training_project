@@ -3,7 +3,7 @@ const appError = require("../utils/appError");
 const { catchAsync } = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 const { STATUS } = require("../modules/status");
-const { respond } = require("../modules/helperMethods");
+const { respond, msToTime } = require("../modules/helperMethods");
 const Staff = require("../models/staffModel");
 const User = require("../models/userModel");
 const countries = require("../utils/countries");
@@ -47,9 +47,8 @@ exports.signUp = catchAsync(async (req, res, next) => {
 			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
 		),
 		httpOnly: true,
-		sameSite: "lax",
-		secure: process.env.NODE_ENV === "production",
 	};
+
 	res.cookie("jwt", token, cookieOptions);
 
 	respond(res, STATUS.CREATED, "success", {
@@ -89,16 +88,7 @@ exports.createStaff = catchAsync(async (req, res, next) => {
 		token,
 	});
 });
-function msToTime(ms) {
-	let seconds = (ms / 1000).toFixed(1);
-	let minutes = (ms / (1000 * 60)).toFixed(1);
-	let hours = (ms / (1000 * 60 * 60)).toFixed(1);
-	let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
-	if (seconds < 60) return seconds + " Sec";
-	else if (minutes < 60) return minutes + " Min";
-	else if (hours < 24) return hours + " Hrs";
-	else return days + " Days";
-}
+
 exports.login = catchAsync(async (req, res, next) => {
 	const { email, password } = req.body;
 	if (!email || !password) {
@@ -134,13 +124,10 @@ exports.login = catchAsync(async (req, res, next) => {
 	}
 
 	const token = signToken({ id: account._id, role: account.role });
+
 	const cookieOptions = {
-		expires: new Date(
-			Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days in milliseconds
-		),
+		expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
 		httpOnly: true,
-		sameSite: "lax",
-		secure: process.env.NODE_ENV === "production",
 	};
 
 	res.cookie("jwt", token, cookieOptions);
@@ -152,10 +139,9 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.logout = (req, res) => {
 	res.cookie("jwt", "loggedout", {
-		expires: new Date(Date.now() + 5 * 1000), // 5 seconds
+		expires: new Date(Date.now() + 5 * 1000),
 		httpOnly: true,
 	});
-
 	res.status(200).json({ status: "success" });
 };
 
@@ -183,15 +169,38 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 	try {
 		await Account.findByIdAndUpdate(checkEmail._id, {
 			resetPasswordToken: hashedToken,
-			resetPasswordExpires: Date.now() + 10 * 60 * 1000,
+			resetPasswordTokenExp: Date.now() + 10 * 60 * 1000,
 		});
 
-		const resetMessage = `This is an automatically generated e-mail from E-Commerce.\n\n————————————\nThank you for using a E-Commerce Account.\n\nPlease enter the following verification code to complete the e-mail address verification process.\n\nVerification code:\n${resetToken}\nPlease be aware that if you do not complete this process within 10 minute(s), the above verification code will become invalid.\n\nIf you were not expecting to receive this e-mail, the account may have been accessed by an unauthorized third-party.\n\n-------------------------\nSincerely,\n\nE-Commerce App,\n\nYou cannot reply to this e-mail address.`;
 		await sendEmail({
 			from: "E-app",
 			to: checkEmail.email,
 			subject: "Password Reset Token",
-			text: resetMessage,
+			html: `
+  <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; background-color: #1e1e1e; color: #f5f5f5; border: 1px solid #333; border-radius: 12px; padding: 32px; box-shadow: 0 0 10px rgba(0,0,0,0.6);">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <img src="https://icons.veryicon.com/png/o/miscellaneous/logo-design-of-lingzhuyun/icon-correct-24-1.png" width="60" height="60"/>
+      <p>AuraCart</p>
+    </div><hr>
+
+    <h2 style="text-align: center; color: #ffffff; margin-top: 0;">Email Verification Code</h2>
+    <p style="text-align: center; color: #cccccc; font-size: 15px; margin-bottom: 30px;">
+      Please use the code below to verify your email address:
+    </p>
+
+    <p style="text-align: center; font-size: 36px; font-weight: bold; color: #ffffff; margin: 20px 0;">
+      ${resetToken}
+    </p>
+
+    <p style="text-align: center; color: #aaaaaa; font-size: 13px;">
+      This code is valid for 10 minutes. If you didn’t request this, please ignore this email.
+    </p>
+    <hr>
+    <p style="text-align: center; font-size: 12px; color: #777;">
+      Message by AuraCart
+    </p>
+  </div>
+			`,
 		});
 
 		respond(res, STATUS.OK, "Reset token sent to your email");
@@ -215,7 +224,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.resetpassword = catchAsync(async (req, res, next) => {
-	const { email, code, newpassword, confirmpassword } = req.body;
+	const { code, newpassword, confirmpassword } = req.body;
+	const email = req.params.email;
 
 	if (!email) {
 		return next(
@@ -224,14 +234,32 @@ exports.resetpassword = catchAsync(async (req, res, next) => {
 	}
 
 	const checkEmail = await Account.findOne({ email });
-	if (
-		!checkEmail ||
-		!checkEmail.resetPasswordTokenExp < Date.now() ||
-		!checkEmail.resetPasswordToken ||
-		newpassword !== confirmpassword
-	) {
-		return next(new appError("You don't have a code !!", STATUS.UNAUTHORIZED));
+	if (!checkEmail) {
+		return next(new appError("Email not found.", STATUS.NOT_FOUND));
 	}
+
+	if (!checkEmail.resetPasswordToken) {
+		return next(
+			new appError(
+				"No reset token found. Please request a new code.",
+				STATUS.UNAUTHORIZED
+			)
+		);
+	}
+
+	if (checkEmail.resetPasswordTokenExp < Date.now()) {
+		return next(
+			new appError(
+				"Reset code has expired. Please request a new one.",
+				STATUS.UNAUTHORIZED
+			)
+		);
+	}
+
+	if (newpassword !== confirmpassword) {
+		return next(new appError("Passwords do not match.", STATUS.BAD_REQUEST));
+	}
+
 	const hashedToken = crypto.createHash("sha256").update(code).digest("hex");
 	const account = await Account.findOne({ resetPasswordToken: hashedToken });
 	if (!account)
@@ -247,9 +275,7 @@ exports.resetpassword = catchAsync(async (req, res, next) => {
 		expires: new Date(
 			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
 		),
-		httpOnly: true,
-		sameSite: "lax",
-		secure: process.env.NODE_ENV === "production",
+		sameSite: "none",
 	};
 
 	res.cookie("jwt", token, cookieOptions);
@@ -342,7 +368,6 @@ exports.restrictTo = (...roles) => {
 
 exports.getMe = (req, res, next) => {
 	const safeAccount = req.account.toObject();
-	delete safeAccount.password;
 
 	respond(res, STATUS.OK, "Current session data retrieved", {
 		account: safeAccount,

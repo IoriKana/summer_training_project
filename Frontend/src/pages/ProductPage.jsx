@@ -12,6 +12,7 @@ import ProductImage from "../components/ProductImage";
 import ProductDescription from "../components/ProductDescription";
 import ProductReview from "../components/ProductReview";
 import Button from "../components/Button";
+import QuantitySelect from "../components/QuantitySelect";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
 
@@ -20,6 +21,7 @@ const ProductPage = () => {
 	const [product, setProduct] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [successMessage, setSuccessMessage] = useState("");
 	const [reviews, setReviews] = useState([]);
 	const { authToken } = useAuth();
 	const navigate = useNavigate();
@@ -31,6 +33,7 @@ const ProductPage = () => {
 		const getProduct = async () => {
 			setIsLoading(true);
 			setError(null);
+			setSuccessMessage("");
 			try {
 				const response = await makeGet(`products/${productId}`);
 				setProduct(response.data.ProductInfo);
@@ -55,9 +58,15 @@ const ProductPage = () => {
 		}
 	};
 
-	const handleAddToCart = () => {
+	const handleAddToCart = (e) => {
 		if (authToken) {
 			addToCart(product, quantity);
+			setSuccessMessage(`${quantity} of ${product.name} added to cart!`);
+			e.target.disabled = true;
+			setTimeout(() => {
+				e.target.disabled = false;
+				setSuccessMessage("");
+			}, 3000);
 		} else {
 			navigate("/login", { state: { from: location } });
 		}
@@ -86,7 +95,7 @@ const ProductPage = () => {
 							<ProductPrice price={product.price} />
 						</div>
 
-						<div className="mt-6 space-y-4">
+						<div className="mt-6 space-y-2">
 							<div className="flex items-center gap-2 justify-center lg:justify-start">
 								{product.stock > 0 ? (
 									<>
@@ -103,32 +112,29 @@ const ProductPage = () => {
 							</div>
 
 							<div className="flex items-center gap-4">
-								<div className="flex items-center border border-gray-300 rounded-lg">
-									<button
-										onClick={decrementQuantity}
-										className="px-3 py-2 text-lg font-bold text-gray-600 hover:bg-gray-100 rounded-l-lg"
-										disabled={product.stock === 0}
-									>
-										-
-									</button>
-									<span className="px-4 py-2 font-bold text-dark-gray">
-										{quantity}
-									</span>
-									<button
-										onClick={incrementQuantity}
-										className="px-3 py-2 text-lg font-bold text-gray-600 hover:bg-gray-100 rounded-r-lg"
-										disabled={product.stock === 0}
-									>
-										+
-									</button>
-								</div>
+								<QuantitySelect
+									product={product}
+									quantity={quantity}
+									incrementQuantity={incrementQuantity}
+									decrementQuantity={decrementQuantity}
+								/>
 								<div className="flex-1">
 									<Button
 										text="Add to cart"
-										onClick={handleAddToCart}
+										onClick={(e) => {
+											handleAddToCart(e);
+										}}
 										disabled={product.stock === 0}
 									/>
 								</div>
+							</div>
+
+							<div className="h-6 text-center">
+								{successMessage && (
+									<p className="text-green-600 font-semibold">
+										{successMessage}
+									</p>
+								)}
 							</div>
 						</div>
 					</div>

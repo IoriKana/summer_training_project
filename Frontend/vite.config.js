@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
 	server: {
+		allowedHosts: ["8ec798d6fb37.ngrok-free.app"],
 		port: 5173,
 		proxy: {
 			"/api": {
